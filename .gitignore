@@ -1,0 +1,7 @@
+*.iml
+.idea
+/annotation-suggestions-api*
+/vendor/*
+!/vendor/vendor.json
+.project
+.vscode
