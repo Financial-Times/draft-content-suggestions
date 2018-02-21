@@ -1,4 +1,4 @@
-# Default values for annotation-suggestions-api.
+# Default values for draft-content-suggestions.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 service:
@@ -6,7 +6,7 @@ service:
   hasHealthcheck: "true"
 replicaCount: 2
 image:
-  repository: coco/annotation-suggestions-api
+  repository: coco/draft-content-suggestions
   version: "" # should be set explicitly at installation
   pullPolicy: IfNotPresent
 resources:

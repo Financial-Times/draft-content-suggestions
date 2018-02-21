@@ -81,7 +81,43 @@ paths:
           examples:
             application/json; charset=UTF-8:
               version: 0.0.1
-              repository: https://github.com/Financial-Times/annotation-suggestions-api.git
+              repository: https://github.com/Financial-Times/draft-content-suggestions.git
               revision: 7cdbdb18b4a518eef3ebb1b545fc124612f9d7cd
               builder: go version go1.8.3 linux/amd64
               dateTime: "20161123122615"
+  /drafts/content/:uuid/suggestions:
+    get:
+      summary: Provides suggestions for provided draft content's uuid
+      description: >
+        Fetches the draft content with the provided uuid from draft-content-api and returns suggestions via
+        using suggestions umbrella service.
+      produces:
+        - application/json; charset=UTF8
+      tags:
+        - Suggestions
+      responses:
+        200:
+          description: Suggestions Response
+          examples:
+            application/json; charset=UTF8:
+              suggestions: [
+                {
+                  "predicate": "http://www.ft.com/ontology/annotation/about",
+                  "id": "http://www.ft.com/thing/6f14ea94-690f-3ed4-98c7-b926683c735a",
+                  "apiUrl": "http://api.ft.com/people/6f14ea94-690f-3ed4-98c7-b926683c735a",
+                  "prefLabel": "Donald Kaberuka",
+                  "type": "http://www.ft.com/ontology/person/Person",
+                  "isFTAuthor": false
+                },
+                {
+                  "predicate": "http://www.ft.com/ontology/annotation/mentions",
+                  "id": "http://www.ft.com/thing/9a5e3b4a-55da-498c-816f-9c534e1392bd",
+                  "apiUrl": "http://api.ft.com/people/9a5e3b4a-55da-498c-816f-9c534e1392bd",
+                  "prefLabel": "Lawrence Summers",
+                  "type": "http://www.ft.com/ontology/person/Person",
+                  "isFTAuthor": true
+                },
+              ]
+
+
+

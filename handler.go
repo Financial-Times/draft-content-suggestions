@@ -1,57 +1,59 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
+	"fmt"
+	"github.com/Financial-Times/draft-content-suggestions/commons"
+	"github.com/Financial-Times/draft-content-suggestions/draft"
+	"github.com/Financial-Times/draft-content-suggestions/suggestions"
+	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
-	"strings"
-
-	"github.com/Financial-Times/service-status-go/buildinfo"
-	tidutils "github.com/Financial-Times/transactionid-utils-go"
 )
 
 type requestHandler struct {
+	dca draft.ContentAPI
+	sua suggestions.UmbrellaAPI
 }
 
-func (handler *requestHandler) sampleMessage(writer http.ResponseWriter, request *http.Request) {
-	defer request.Body.Close()
+func (rh *requestHandler) annotationSuggestionsRequest(writer http.ResponseWriter, request *http.Request) {
 
-	// todo: implement handler logic
+	uuid := mux.Vars(request)["uuid"]
 
-	err := error(nil)
-	switch err {
-	case nil:
-		writer.WriteHeader(http.StatusOK)
-		writer.Write([]byte(`{"output":"Sample output"}`))
-	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-	}
-}
+	err := commons.ValidateUUID(uuid)
 
-func newHttpRequest(ctx context.Context, method string, urlStr string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, urlStr, body)
 	if err != nil {
-		return nil, err
+		commons.WriteJSONMessage(writer, http.StatusBadRequest, fmt.Sprintln("Draft content api access error:", err))
+		return
 	}
 
-	tid, err := tidutils.GetTransactionIDFromContext(ctx)
-	if err == nil {
-		req.Header.Set(tidutils.TransactionIDHeader, tid)
+	ctx := commons.NewContextFromRequest(request)
+
+	content, err := rh.dca.FetchDraftContent(ctx, uuid)
+
+	if err != nil {
+		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintln("Draft content api access error:", err))
+		return
 	}
 
-	req.Header.Set("User-Agent", "PAC-annotation-suggestions-api/"+strings.Replace(buildinfo.GetBuildInfo().Version, " ", "-", -1))
-	return req, nil
-}
+	if content == nil {
+		commons.WriteJSONMessage(writer, http.StatusNotFound, fmt.Sprintln("No draft content for uuid:", uuid))
+		return
+	}
 
-type message struct {
-	Message string `json:"message"`
-}
+	suggestion, err := rh.sua.FetchSuggestions(ctx, content)
 
-func writeJSONMessage(w http.ResponseWriter, status int, msg string) error {
-	w.WriteHeader(status)
-	w.Header().Add("Content-Type", "application/json")
+	if err != nil {
+		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintln("Suggestions umbrella api access error:", err))
+		return
+	}
 
-	enc := json.NewEncoder(w)
-	return enc.Encode(&message{Message: msg})
+	_, err = io.Copy(writer, suggestion)
+
+	// could be related to intermittent/temporary network issues
+	// or original Tagme request is no more waiting for a response.
+	if err != nil {
+		log.WithError(err).Error(fmt.Println("Failed responding to annotation suggestions request for uuid:", uuid))
+	}
+
 }

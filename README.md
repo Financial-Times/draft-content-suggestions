@@ -1,28 +1,22 @@
-# annotation-suggestions-api
-_Should be the same as the github repo name but it isn't always._
+# draft-content-suggestions
 
-[![Circle CI](https://circleci.com/gh/Financial-Times/annotation-suggestions-api/tree/master.png?style=shield)](https://circleci.com/gh/Financial-Times/annotation-suggestions-api/tree/master)[![Go Report Card](https://goreportcard.com/badge/github.com/Financial-Times/annotation-suggestions-api)](https://goreportcard.com/report/github.com/Financial-Times/annotation-suggestions-api) [![Coverage Status](https://coveralls.io/repos/github/Financial-Times/annotation-suggestions-api/badge.svg)](https://coveralls.io/github/Financial-Times/annotation-suggestions-api)
+[![Circle CI](https://circleci.com/gh/Financial-Times/draft-content-suggestions/tree/master.png?style=shield)](https://circleci.com/gh/Financial-Times/draft-content-suggestions/tree/master)[![Go Report Card](https://goreportcard.com/badge/github.com/Financial-Times/draft-content-suggestions)](https://goreportcard.com/report/github.com/Financial-Times/draft-content-suggestions) [![Coverage Status](https://coveralls.io/repos/github/Financial-Times/draft-content-suggestions/badge.svg)](https://coveralls.io/github/Financial-Times/draft-content-suggestions)
 
 ## Introduction
-
-_What is this service and what is it for? What other services does it depend on_
-
-Provides suggestions for draft content.
+Draft Content Suggestions as a microservice, provides consolidated suggestions via fetching draft content 
+from Draft Content service and querying Suggestions Umbrella service.  
 
 ## Installation
-
-_How can I install it_
 
 Download the source code, dependencies and test dependencies:
 
         go get -u github.com/kardianos/govendor
-        go get -u github.com/Financial-Times/annotation-suggestions-api
-        cd $GOPATH/src/github.com/Financial-Times/annotation-suggestions-api
+        go get -u github.com/Financial-Times/draft-content-suggestions
+        cd $GOPATH/src/github.com/Financial-Times/draft-content-suggestions
         govendor sync
         go build .
 
 ## Running locally
-_How can I run it_
 
 1. Run the tests and install the binary:
 
@@ -32,38 +26,35 @@ _How can I run it_
 
 2. Run the binary (using the `help` flag to see the available optional arguments):
 
-        $GOPATH/bin/annotation-suggestions-api [--help]
+        $GOPATH/bin/draft-content-suggestions [--help]
 
 Options:
 
-        --app-system-code="annotation-suggestions-api"            System Code of the application ($APP_SYSTEM_CODE)
+        --app-system-code="draft-content-suggestions"            System Code of the application ($APP_SYSTEM_CODE)
         --app-name="Annotation Suggestions API"                   Application name ($APP_NAME)
         --port="8080"                                           Port to listen on ($APP_PORT)
+        --draft-content-endpoint="http://test.api.ft.com/drafts/content" Draft Content Service
+        --suggestions-umbrella-endpoint="http://test.api.ft.com/content/suggest" Suggestions Umbrella Service
 
 3. Test:
 
     1. Either using curl:
 
-            curl http://localhost:8080/people/143ba45c-2fb3-35bc-b227-a6ed80b5c517 | json_pp
+            curl http://localhost:8080/drafts/content/143ba45c-2fb3-35bc-b227-a6ed80b5c517/suggestions | json_pp
 
     1. Or using [httpie](https://github.com/jkbrzt/httpie):
 
-            http GET http://localhost:8080/people/143ba45c-2fb3-35bc-b227-a6ed80b5c517
+            http GET http://localhost:8080/drafts/content/143ba45c-2fb3-35bc-b227-a6ed80b5c517/suggestions
 
 ## Build and deployment
 _How can I build and deploy it (lots of this will be links out as the steps will be common)_
 
-* Built by Docker Hub on merge to master: [coco/annotation-suggestions-api](https://hub.docker.com/r/coco/annotation-suggestions-api/)
-* CI provided by CircleCI: [annotation-suggestions-api](https://circleci.com/gh/Financial-Times/annotation-suggestions-api)
+* Built by Docker Hub on merge to master: [coco/draft-content-suggestions](https://hub.docker.com/r/coco/draft-content-suggestions/)
+* CI provided by CircleCI: [draft-content-suggestions](https://circleci.com/gh/Financial-Times/draft-content-suggestions)
 
 ## API
 
 For detailed documentation in OpenAPI format, please see [here](./_ft/api.yml).
-
-## Other information
-_Anything else you want to add._
-
-_e.g. (NB: this example may be something we want to extract as it's probably common to a lot of services)_
 
 ### Logging
 

@@ -1,5 +1,0 @@
-# Values used for the deployed application.
-service:
-  name: annotation-suggestions-api
-env:
-  ENV_VAR_1: "value1"

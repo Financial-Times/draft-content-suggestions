@@ -1,18 +1,36 @@
 package health
 
-import fthealth "github.com/Financial-Times/go-fthealth/v1_1"
+import (
+	"context"
+	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
+)
 
-func (service *HealthService) sampleCheck() fthealth.Check {
+func (service *HealthService) draftContentCheck() fthealth.Check {
 	return fthealth.Check{
-		BusinessImpact:   "Sample healthcheck has no impact",
-		Name:             "Sample healthcheck",
-		PanicGuide:       "https://dewey.in.ft.com/view/system/annotation-suggestions-api",
+		BusinessImpact:   "Severe impact",
+		Name:             "Draft Content Service Health Check",
+		PanicGuide:       "https://dewey.in.ft.com/view/system/draft-content-suggestions",
 		Severity:         1,
-		TechnicalSummary: "Sample healthcheck has no technical details",
-		Checker:          service.sampleChecker,
+		TechnicalSummary: "Checks whether the health endpoint of draft-content-api returns successful responses",
+		Checker:          service.draftContentChecker,
 	}
 }
 
-func (service *HealthService) sampleChecker() (string, error) {
-	return "Sample is healthy", nil
+func (service *HealthService) suggestionsCheck() fthealth.Check {
+	return fthealth.Check{
+		BusinessImpact:   "Severe impact",
+		Name:             "Suggestions Umbrella Service Health Check",
+		PanicGuide:       "https://dewey.in.ft.com/view/system/draft-content-suggestions",
+		Severity:         1,
+		TechnicalSummary: "Checks whether the suggestions umbrella endpoint is accessible and returns responses",
+		Checker:          service.suggestionsChecker,
+	}
+}
+
+func (service *HealthService) draftContentChecker() (string, error) {
+	return service.contentAPI.IsHealthy(context.Background())
+}
+
+func (service *HealthService) suggestionsChecker() (string, error) {
+	return service.umbrellaAPI.IsHealthy(context.Background())
 }

@@ -4,31 +4,31 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"syscall"
 	"sync"
+	"syscall"
 
-   "github.com/Financial-Times/annotation-suggestions-api/health"
-
-	"github.com/jawher/mow.cli"
-   api "github.com/Financial-Times/api-endpoint"
-	log "github.com/sirupsen/logrus"
-
-	"github.com/gorilla/mux"
-	"github.com/rcrowley/go-metrics"
-	"github.com/Financial-Times/http-handlers-go/httphandlers"
-
+	"github.com/Financial-Times/api-endpoint"
+	"github.com/Financial-Times/draft-content-suggestions/draft"
+	"github.com/Financial-Times/draft-content-suggestions/health"
+	"github.com/Financial-Times/draft-content-suggestions/suggestions"
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
+	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
+	"github.com/gorilla/mux"
+	"github.com/jawher/mow.cli"
+	"github.com/rcrowley/go-metrics"
+	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 const appDescription = "Provides suggestions for draft content."
 
 func main() {
-	app := cli.App("annotation-suggestions-api", appDescription)
+	app := cli.App("draft-content-suggestions", appDescription)
 
 	appSystemCode := app.String(cli.StringOpt{
 		Name:   "app-system-code",
-		Value:  "annotation-suggestions-api",
+		Value:  "draft-content-suggestions",
 		Desc:   "System Code of the application",
 		EnvVar: "APP_SYSTEM_CODE",
 	})
@@ -47,37 +47,74 @@ func main() {
 		EnvVar: "APP_PORT",
 	})
 
-   apiYml := app.String(cli.StringOpt{
+	apiYml := app.String(cli.StringOpt{
 		Name:   "api-yml",
 		Value:  "./api.yml",
 		Desc:   "Location of the OpenAPI YML file.",
 		EnvVar: "API_YML",
 	})
 
-   log.SetFormatter(&log.JSONFormatter{})
+	draftContentEndpoint := app.String(cli.StringOpt{
+		Name:   "draft-content-endpoint",
+		Value:  "http://test.api.ft.com/drafts/content",
+		Desc:   "Endpoint for Draft Content API",
+		EnvVar: "DRAFT_CONTENT_ENDPOINT",
+	})
+
+	draftContentHealthEndpoint := app.String(cli.StringOpt{
+		Name:   "draft-content-health-endpoint",
+		Value:  "http://test.api.ft.com/__health",
+		Desc:   "Health Endpoint for Draft Content API",
+		EnvVar: "DRAFT_CONTENT_HEALTH_ENDPOINT",
+	})
+
+	suggestionsEndpoint := app.String(cli.StringOpt{
+		Name:   "suggestions-umbrella-endpoint",
+		Value:  "http://test.api.ft.com/content/suggest",
+		Desc:   "Endpoint for Suggestions Umbrella",
+		EnvVar: "SUGGESTIONS_ENDPOINT",
+	})
+
+	log.SetFormatter(&log.JSONFormatter{})
 	log.SetLevel(log.InfoLevel)
-	log.Infof("[Startup] annotation-suggestions-api is starting ")
+	log.Infof("[Startup] draft-content-suggestions is starting ")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, client)
+
+	if err != nil {
+		log.WithError(err).Error("Suggestions Umbrella API error, exiting ...")
+		return
+	}
+
+	contentAPI, err := draft.NewContentAPI(*draftContentEndpoint, *draftContentHealthEndpoint, client)
+
+	if err != nil {
+		log.WithError(err).Error("Draft Content API error, exiting ...")
+		return
+	}
 
 	app.Action = func() {
 		log.Infof("System code: %s, App Name: %s, Port: %s", *appSystemCode, *appName, *port)
 
 		go func() {
-			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{})
+			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI})
 		}()
-
-		// todo: insert app code here
 
 		waitForSignal()
 	}
-	err := app.Run(os.Args)
+
+	err = app.Run(os.Args)
 	if err != nil {
-		log.WithError(err).Error("annotation-suggestions-api could not start!")
+		log.WithError(err).Error("draft-content-suggestions could not start!")
 		return
 	}
 }
 
 func serveEndpoints(appSystemCode string, appName string, port string, apiYml *string, requestHandler requestHandler) {
-	healthService := health.NewHealthService(appSystemCode, appName, appDescription)
+	healthService := health.NewHealthService(appSystemCode, appName, appDescription,
+		requestHandler.dca, requestHandler.sua)
 
 	serveMux := http.NewServeMux()
 
@@ -85,7 +122,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, apiYml *s
 	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(healthService.GTG))
 	serveMux.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler)
 
-   if apiYml != nil {
+	if apiYml != nil {
 		apiEndpoint, err := api.NewAPIEndpointForFile(*apiYml)
 		if err != nil {
 			log.WithError(err).WithField("file", apiYml).Warn("Failed to serve the API Endpoint for this service. Please validate the file exists, and that it fits the OpenAPI specification.")
@@ -94,10 +131,8 @@ func serveEndpoints(appSystemCode string, appName string, port string, apiYml *s
 		}
 	}
 
-
 	servicesRouter := mux.NewRouter()
-	servicesRouter.HandleFunc("/sample", requestHandler.sampleMessage).Methods("POST")
-	//todo: add new handlers here
+	servicesRouter.HandleFunc("/drafts/content/:uuid/annotation-suggestions", requestHandler.annotationSuggestionsRequest).Methods("GET")
 
 	var monitoringRouter http.Handler = servicesRouter
 	monitoringRouter = httphandlers.TransactionAwareRequestLoggingHandler(log.StandardLogger(), monitoringRouter)
@@ -118,7 +153,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, apiYml *s
 	}()
 
 	waitForSignal()
-	log.Infof("[Shutdown] annotation-suggestions-api is shutting down")
+	log.Infof("[Shutdown] draft-content-suggestions is shutting down")
 
 	if err := server.Close(); err != nil {
 		log.WithError(err).Error("Unable to stop http server")

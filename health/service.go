@@ -3,6 +3,8 @@ package health
 import (
 	"time"
 
+	"github.com/Financial-Times/draft-content-suggestions/draft"
+	"github.com/Financial-Times/draft-content-suggestions/suggestions"
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/service-status-go/gtg"
 )
@@ -13,6 +15,8 @@ type HealthService struct {
 	config       *HealthConfig
 	healthChecks []fthealth.Check
 	gtgChecks    []gtg.StatusChecker
+	contentAPI   draft.ContentAPI
+	umbrellaAPI  suggestions.UmbrellaAPI
 }
 
 type HealthConfig struct {
@@ -21,20 +25,31 @@ type HealthConfig struct {
 	appDescription string
 }
 
-func NewHealthService(appSystemCode string, appName string, appDescription string) *HealthService {
+func NewHealthService(appSystemCode string, appName string,
+	appDescription string, contentAPI draft.ContentAPI,
+	umbrellaAPI suggestions.UmbrellaAPI) *HealthService {
+
 	hc := &HealthService{
 		config: &HealthConfig{
 			appSystemCode:  appSystemCode,
 			appName:        appName,
 			appDescription: appDescription,
 		},
+		contentAPI:  contentAPI,
+		umbrellaAPI: umbrellaAPI,
 	}
-	hc.healthChecks = []fthealth.Check{hc.sampleCheck()}
-	check := func() gtg.Status {
-		return gtgCheck(hc.sampleChecker)
+
+	hc.healthChecks = []fthealth.Check{hc.draftContentCheck(), hc.suggestionsCheck()}
+
+	draftContentCheck := func() gtg.Status {
+		return gtgCheck(hc.draftContentChecker)
 	}
+	suggestionsCheck := func() gtg.Status {
+		return gtgCheck(hc.suggestionsChecker)
+	}
+
 	var gtgChecks []gtg.StatusChecker
-	gtgChecks = append(hc.gtgChecks, check)
+	gtgChecks = append(hc.gtgChecks, draftContentCheck, suggestionsCheck)
 	hc.gtgChecks = gtgChecks
 	return hc
 }

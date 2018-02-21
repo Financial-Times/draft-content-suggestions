@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/Financial-Times/annotation-suggestions-api
+    working_directory: /go/src/github.com/Financial-Times/draft-content-suggestions
     docker:
       - image: golang:1.8.3
         environment:
@@ -39,7 +39,7 @@ jobs:
       - store_test_results:
           path: /tmp/test-results
   dockerfile:
-    working_directory: /annotation-suggestions-api
+    working_directory: /draft-content-suggestions
     docker:
       - image: docker:17.09.0-ce-git
     steps:
@@ -49,12 +49,12 @@ jobs:
           name: Build Dockerfile
           command: docker build .
   dredd:
-    working_directory: /go/src/github.com/Financial-Times/annotation-suggestions-api
+    working_directory: /go/src/github.com/Financial-Times/draft-content-suggestions
     docker:
       - image: bankrs/golang-dredd:go1.8.3-dredd4.4.0
         environment:
           GOPATH: /go
-          API_YML: /go/src/github.com/Financial-Times/annotation-suggestions-api/_ft/api.yml
+          API_YML: /go/src/github.com/Financial-Times/draft-content-suggestions/_ft/api.yml
       - image: peteclarkft/ersatz:stable
     steps:
       - checkout

@@ -1,6 +1,6 @@
 *.iml
 .idea
-/annotation-suggestions-api*
+/draft-content-suggestions*
 /vendor/*
 !/vendor/vendor.json
 .project
