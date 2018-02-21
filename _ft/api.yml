@@ -85,21 +85,28 @@ paths:
               revision: 7cdbdb18b4a518eef3ebb1b545fc124612f9d7cd
               builder: go version go1.8.3 linux/amd64
               dateTime: "20161123122615"
-  /drafts/content/:uuid/suggestions:
+  /drafts/content/{uuid}/suggestions:
     get:
       summary: Provides suggestions for provided draft content's uuid
       description: >
         Fetches the draft content with the provided uuid from draft-content-api and returns suggestions via
         using suggestions umbrella service.
       produces:
-        - application/json; charset=UTF8
+        - application/json; charset=UTF-8
       tags:
-        - Suggestions
+        - Public API
+      parameters:
+        - name: uuid
+          in: path
+          description: The UUID of the content
+          required: true
+          type: string
+          x-example: 97c97db4-4a93-43a4-87c9-b04d7f5284c1
       responses:
         200:
           description: Suggestions Response
           examples:
-            application/json; charset=UTF8:
+            application/json:
               suggestions: [
                 {
                   "predicate": "http://www.ft.com/ontology/annotation/about",

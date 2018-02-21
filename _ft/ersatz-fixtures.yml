@@ -1,1 +1,36 @@
-version: 1.0.0
+fixtures:
+  /__gtg:
+    get:
+      body: OK
+      status: 200
+  /content/suggest:
+    post:
+      body:
+        suggestions:
+          -
+            apiUrl: "http://api.ft.com/people/6f14ea94-690f-3ed4-98c7-b926683c735a"
+            id: "http://www.ft.com/thing/6f14ea94-690f-3ed4-98c7-b926683c735a"
+            isFTAuthor: false
+            predicate: "http://www.ft.com/ontology/annotation/about"
+            prefLabel: "Donald Kaberuka"
+            type: "http://www.ft.com/ontology/person/Person"
+          -
+            apiUrl: "http://api.ft.com/people/9a5e3b4a-55da-498c-816f-9c534e1392bd"
+            id: "http://www.ft.com/thing/9a5e3b4a-55da-498c-816f-9c534e1392bd"
+            isFTAuthor: true
+            predicate: "http://www.ft.com/ontology/annotation/mentions"
+            prefLabel: "Lawrence Summers"
+            type: "http://www.ft.com/ontology/person/Person"
+      headers:
+        content-type: application/json
+      status: 200
+  /drafts/content/97c97db4-4a93-43a4-87c9-b04d7f5284c1:
+    get:
+      body:
+        body: some-body
+        byline: erdema
+        title: some-title
+      headers:
+        content-type: application/json
+      status: 200
+version: "1.0.0"

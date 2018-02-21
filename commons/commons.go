@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Financial-Times/service-status-go/buildinfo"
-	tidutils "github.com/Financial-Times/transactionid-utils-go"
-	"github.com/satori/go.uuid"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/Financial-Times/service-status-go/buildinfo"
+	tidutils "github.com/Financial-Times/transactionid-utils-go"
+	"github.com/satori/go.uuid"
 )
 
 // Common type/behaviour definition for an endpoint

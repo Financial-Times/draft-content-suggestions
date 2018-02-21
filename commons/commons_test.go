@@ -4,11 +4,12 @@ import "testing"
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/Financial-Times/transactionid-utils-go"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"strings"
 )
 
 const (
@@ -23,10 +24,7 @@ func TestValidateEndpointSuccess(t *testing.T) {
 
 func TestValidateEndpointFailure(t *testing.T) {
 	isValid := ValidateEndpoint(invalidEndpoint)
-
-	if isValid == nil {
-		assert.Fail(t, fmt.Sprintf("Endpoint validation should've failed for: %v", invalidEndpoint))
-	}
+	assert.Error(t, isValid)
 }
 
 func TestValidateUUIDSuccess(t *testing.T) {

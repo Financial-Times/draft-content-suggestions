@@ -11,8 +11,9 @@ from Draft Content service and querying Suggestions Umbrella service.
 Download the source code, dependencies and test dependencies:
 
         go get -u github.com/kardianos/govendor
-        go get -u github.com/Financial-Times/draft-content-suggestions
-        cd $GOPATH/src/github.com/Financial-Times/draft-content-suggestions
+        cd $GOPATH/src/
+        git clone github.com/Financial-Times/draft-content-suggestions
+        cd github.com/Financial-Times/draft-content-suggestions
         govendor sync
         go build .
 
@@ -33,9 +34,10 @@ Options:
         --app-system-code="draft-content-suggestions"            System Code of the application ($APP_SYSTEM_CODE)
         --app-name="Annotation Suggestions API"                   Application name ($APP_NAME)
         --port="8080"                                           Port to listen on ($APP_PORT)
-        --draft-content-endpoint="http://test.api.ft.com/drafts/content" Draft Content Service
-        --draft-content-health-endpoint="http://test.api.ft.com/drafts/content" Draft Content Health Service
+        --draft-content-endpoint="http://localhost:9000/drafts/content" Draft Content Service
+        --draft-content-health-endpoint="http://localhost:9000/__gtg" Draft Content Health Service
         --suggestions-umbrella-endpoint="http://test.api.ft.com/content/suggest" Suggestions Umbrella Service
+        --suggestions-api-key="" Suggestions service apiKey
         
 
 3. Test:

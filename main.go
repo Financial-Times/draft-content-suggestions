@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/Financial-Times/api-endpoint"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
@@ -18,7 +19,6 @@ import (
 	"github.com/jawher/mow.cli"
 	"github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const appDescription = "Provides suggestions for draft content."
@@ -75,13 +75,20 @@ func main() {
 		EnvVar: "SUGGESTIONS_ENDPOINT",
 	})
 
+	suggestionsAPIKey := app.String(cli.StringOpt{
+		Name:   "suggestions-api-key",
+		Value:  "",
+		Desc:   "API key to access Suggestions Umbrella",
+		EnvVar: "SUGGESTIONS_API_KEY",
+	})
+
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetLevel(log.InfoLevel)
 	log.Infof("[Startup] draft-content-suggestions is starting ")
 
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, client)
+	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsAPIKey, client)
 
 	if err != nil {
 		log.WithError(err).Error("Suggestions Umbrella API error, exiting ...")
@@ -132,10 +139,10 @@ func serveEndpoints(appSystemCode string, appName string, port string, apiYml *s
 	}
 
 	servicesRouter := mux.NewRouter()
-	servicesRouter.HandleFunc("/drafts/content/:uuid/annotation-suggestions", requestHandler.annotationSuggestionsRequest).Methods("GET")
+	servicesRouter.HandleFunc("/drafts/content/{uuid}/suggestions",
+		requestHandler.draftContentSuggestionsRequest).Methods("GET")
 
-	var monitoringRouter http.Handler = servicesRouter
-	monitoringRouter = httphandlers.TransactionAwareRequestLoggingHandler(log.StandardLogger(), monitoringRouter)
+	monitoringRouter := httphandlers.TransactionAwareRequestLoggingHandler(log.StandardLogger(), servicesRouter)
 	monitoringRouter = httphandlers.HTTPMetricsHandler(metrics.DefaultRegistry, monitoringRouter)
 
 	serveMux.Handle("/", monitoringRouter)

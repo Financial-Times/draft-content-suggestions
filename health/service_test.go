@@ -1,19 +1,21 @@
 package health
 
 import (
-	"testing"
-	"net/http/httptest"
 	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
 	"github.com/stretchr/testify/assert"
+
 )
 
 func TestHealthService_HealthSuccess(t *testing.T) {
 	server := newHealthTestServer(t, true)
 
-	contentAPI, _ := draft.NewContentAPI(server.URL+"/drafts/content", server.URL+"/__health", http.DefaultClient)
-	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(server.URL+"/content/suggest", http.DefaultClient)
+	contentAPI, _ := draft.NewContentAPI(server.URL+"/drafts/content", server.URL+"/__gtg", http.DefaultClient)
+	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(server.URL+"/content/suggest", "", http.DefaultClient)
 
 	healthService := NewHealthService("", "", "", contentAPI, umbrellaAPI)
 
@@ -25,8 +27,8 @@ func TestHealthService_HealthSuccess(t *testing.T) {
 func TestHealthService_HealthFailure(t *testing.T) {
 	server := newHealthTestServer(t, false)
 
-	contentAPI, _ := draft.NewContentAPI(server.URL+"/drafts/content", server.URL+"/__health", http.DefaultClient)
-	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(server.URL+"/content/suggest", http.DefaultClient)
+	contentAPI, _ := draft.NewContentAPI(server.URL+"/drafts/content", server.URL+"/__gtg", http.DefaultClient)
+	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(server.URL+"/content/suggest", "", http.DefaultClient)
 
 	healthService := NewHealthService("", "", "", contentAPI, umbrellaAPI)
 

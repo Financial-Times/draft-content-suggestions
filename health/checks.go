@@ -7,7 +7,7 @@ import (
 
 func (service *HealthService) draftContentCheck() fthealth.Check {
 	return fthealth.Check{
-		BusinessImpact:   "Severe impact",
+		BusinessImpact:   "Unable to provide suggestions to editorial for tagging content",
 		Name:             "Draft Content Service Health Check",
 		PanicGuide:       "https://dewey.in.ft.com/view/system/draft-content-suggestions",
 		Severity:         1,
@@ -18,7 +18,7 @@ func (service *HealthService) draftContentCheck() fthealth.Check {
 
 func (service *HealthService) suggestionsCheck() fthealth.Check {
 	return fthealth.Check{
-		BusinessImpact:   "Severe impact",
+		BusinessImpact:   "Unable to provide suggestions to editorial for tagging content",
 		Name:             "Suggestions Umbrella Service Health Check",
 		PanicGuide:       "https://dewey.in.ft.com/view/system/draft-content-suggestions",
 		Severity:         1,
