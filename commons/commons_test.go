@@ -30,7 +30,7 @@ func TestValidateEndpointFailure(t *testing.T) {
 }
 
 func TestValidateUUIDSuccess(t *testing.T) {
-	v4, _ := uuid.NewV4()
+	v4 := uuid.NewV4()
 	assert.NoError(t, ValidateUUID(v4.String()))
 }
 

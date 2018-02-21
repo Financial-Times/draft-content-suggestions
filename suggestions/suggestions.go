@@ -75,15 +75,11 @@ func (u *umbrellaAPI) Endpoint() string {
 }
 
 func (u *umbrellaAPI) IsHealthy(ctx context.Context) (string, error) {
-	newUUID, err := uuid.NewV4()
-
-	if err != nil {
-		return "", errors.New(fmt.Sprintln())
-	}
+	newUUID := uuid.NewV4()
 
 	c := &draft.Content{UUID: newUUID.String()}
 
-	_, err = u.FetchSuggestions(ctx, c)
+	_, err := u.FetchSuggestions(ctx, c)
 
 	if err != nil {
 		return "", err
