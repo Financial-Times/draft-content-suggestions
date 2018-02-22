@@ -28,9 +28,9 @@ func (service *HealthService) suggestionsCheck() fthealth.Check {
 }
 
 func (service *HealthService) draftContentChecker() (string, error) {
-	return service.contentAPI.IsHealthy(context.Background())
+	return service.contentAPI.IsGTG(context.Background())
 }
 
 func (service *HealthService) suggestionsChecker() (string, error) {
-	return service.umbrellaAPI.IsHealthy(context.Background())
+	return service.umbrellaAPI.IsGTG(context.Background())
 }

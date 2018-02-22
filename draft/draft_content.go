@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/Financial-Times/draft-content-suggestions/commons"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/Financial-Times/draft-content-suggestions/commons"
 )
 
 func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Client) (contentAPI ContentAPI, err error) {
@@ -47,13 +48,13 @@ type draftContentAPI struct {
 func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) (*Content, error) {
 
 	requestPath := d.endpoint + uuid
-	request, err := commons.NewHttpRequest(context.Background(), http.MethodGet, requestPath, nil)
+	request, err := http.NewRequest(http.MethodGet, requestPath, nil)
 
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := d.httpClient.Do(request)
+	response, err := d.httpClient.Do(request.WithContext(ctx))
 
 	if err != nil {
 		return nil, err
@@ -86,18 +87,20 @@ func (d *draftContentAPI) Endpoint() string {
 	return d.endpoint
 }
 
-func (d *draftContentAPI) IsHealthy(ctx context.Context) (string, error) {
-	request, err := commons.NewHttpRequest(context.Background(), http.MethodGet, d.healthEndpoint, nil)
+func (d *draftContentAPI) IsGTG(ctx context.Context) (string, error) {
+	request, err := http.NewRequest(http.MethodGet, d.healthEndpoint, nil)
 
 	if err != nil {
 		return "", err
 	}
 
-	response, err := d.httpClient.Do(request)
+	response, err := d.httpClient.Do(request.WithContext(ctx))
 
 	if err != nil {
 		return "", err
 	}
+
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		return "", errors.New("draft-content-api endpoint is unhealthy")

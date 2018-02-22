@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/Financial-Times/draft-content-suggestions/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDraftContentAPI_IsHealthySuccess(t *testing.T) {
@@ -18,7 +18,7 @@ func TestDraftContentAPI_IsHealthySuccess(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = contentAPI.IsHealthy(context.Background())
+	_, err = contentAPI.IsGTG(context.Background())
 	assert.NoError(t, err)
 }
 func TestDraftContentAPI_IsHealthyFailure(t *testing.T) {
@@ -29,7 +29,7 @@ func TestDraftContentAPI_IsHealthyFailure(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = contentAPI.IsHealthy(context.Background())
+	_, err = contentAPI.IsGTG(context.Background())
 	assert.Error(t, err)
 }
 func TestDraftContentAPI_FetchDraftContentSuccess(t *testing.T) {
@@ -72,7 +72,7 @@ func TestDraftContentAPI_FetchDraftContentMissing(t *testing.T) {
 }
 func TestDraftContentAPI_FetchDraftContentFailure(t *testing.T) {
 
-	testServer := mocks.NewDraftContentTestServer( true)
+	testServer := mocks.NewDraftContentTestServer(true)
 	testServer.Close()
 
 	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient)
@@ -83,4 +83,3 @@ func TestDraftContentAPI_FetchDraftContentFailure(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, content == nil)
 }
-

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/Financial-Times/draft-content-suggestions/mocks"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
+	"github.com/Financial-Times/draft-content-suggestions/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
 const apiKey = "12345"
@@ -21,7 +21,7 @@ func TestUmbrellaAPI_IsHealthySuccess(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = umbrellaAPI.IsHealthy(context.Background())
+	_, err = umbrellaAPI.IsGTG(context.Background())
 	assert.NoError(t, err)
 }
 func TestUmbrellaAPI_IsHealthyFailure(t *testing.T) {
@@ -32,7 +32,7 @@ func TestUmbrellaAPI_IsHealthyFailure(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = umbrellaAPI.IsHealthy(context.Background())
+	_, err = umbrellaAPI.IsGTG(context.Background())
 	assert.Error(t, err)
 }
 func TestUmbrellaAPI_FetchSuggestions(t *testing.T) {

@@ -29,8 +29,8 @@ func NewUmbrellaAPI(endpoint string, apiKey string, httpClient *http.Client) (Um
 
 type UmbrellaAPI interface {
 	// FetchSuggestions
-	// Makes a API request to Suggestions Umbrella and directly returns the
-	// response io.ReadCloser for possible pipelined streaming.
+	// Makes a API request to Suggestions Umbrella and returns the
+	// []byte body
 	FetchSuggestions(ctx context.Context, content *draft.Content) (suggestion []byte, err error)
 
 	// Embedded Endpoint interface, check its godoc
@@ -50,14 +50,14 @@ func (u *umbrellaAPI) FetchSuggestions(ctx context.Context, content *draft.Conte
 		return nil, err
 	}
 
-	request, err := commons.NewHttpRequest(ctx, http.MethodPost, u.endpoint, bytes.NewBuffer(jsonBytes))
+	request, err := http.NewRequest(http.MethodPost, u.endpoint, bytes.NewBuffer(jsonBytes))
 	request.Header.Set("X-Api-Key", u.apiKey)
 
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := u.httpClient.Do(request)
+	response, err := u.httpClient.Do(request.WithContext(ctx))
 
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (u *umbrellaAPI) Endpoint() string {
 	return u.endpoint
 }
 
-func (u *umbrellaAPI) IsHealthy(ctx context.Context) (string, error) {
+func (u *umbrellaAPI) IsGTG(ctx context.Context) (string, error) {
 	newUUID := uuid.NewV4()
 
 	c := &draft.Content{UUID: newUUID.String()}

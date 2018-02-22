@@ -1,11 +1,9 @@
 package commons
 
-import "testing"
 import (
-	"context"
 	"fmt"
 	"net/http"
-	"strings"
+	"testing"
 
 	"github.com/Financial-Times/transactionid-utils-go"
 	"github.com/satori/go.uuid"
@@ -47,18 +45,5 @@ func TestNewContextFromRequest(t *testing.T) {
 	trxId, ok := contextFromRequest.Value(transactionidutils.TransactionIDKey).(string)
 
 	assert.True(t, ok)
-	assert.True(t, trxId != "")
-}
-
-func TestNewHttpRequestShouldContainTrxIdHeader(t *testing.T) {
-	request, err := NewHttpRequest(context.Background(), http.MethodGet, validEndpoint, nil)
-
-	assert.NoError(t, err)
-	assert.True(t, request.Header.Get(transactionidutils.TransactionIDHeader) != "")
-}
-func TestNewHttpRequestShouldContainUserAgentHeader(t *testing.T) {
-	request, err := NewHttpRequest(context.Background(), http.MethodGet, validEndpoint, nil)
-
-	assert.NoError(t, err)
-	assert.True(t, strings.HasPrefix(request.Header.Get("User-Agent"), "PAC-draft-content-suggestions/"))
+	assert.NotEmpty(t, trxId)
 }
