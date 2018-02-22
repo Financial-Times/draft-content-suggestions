@@ -48,6 +48,24 @@ jobs:
       - run:
           name: Build Dockerfile
           command: docker build .
+  suggestions_mock:
+    working_directory: /draft-content-suggestions
+    docker:
+      - image: docker:17.09.0-ce-git
+    steps:
+      - checkout
+      - setup_docker_engine
+      - run:
+          name: Login Docker
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Build Dockerfile
+          command: |
+            cd ./_ft/
+            docker build -t coco/upp-suggestions-umbrella-mock:${CIRCLE_TAG} .
+      - run:
+          name: Push Suggestions Mock
+          command: docker push coco/upp-suggestions-umbrella-mock:${CIRCLE_TAG}
   dredd:
     working_directory: /go/src/github.com/Financial-Times/draft-content-suggestions
     docker:
@@ -80,3 +98,9 @@ workflows:
       - dockerfile:
           requires:
             - build
+      - suggestions_mock:
+          requires:
+            - dockerfile
+          filters:
+            tags:
+              only: /.*/

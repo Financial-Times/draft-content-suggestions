@@ -1,0 +1,66 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: upp-suggestions-umbrella-mock
+  labels:
+    chart: upp-suggestions-umbrella-mock
+    chartVersion: "{{ .Chart.Version | trunc 63 }}"
+    app: upp-suggestions-umbrella-mock
+    visualize: "true"
+    hasHealthcheck: "{{ .Values.service.hasHealthcheck }}"
+spec:
+  ports:
+    - port: 8080
+      targetPort: 9000
+  selector:
+    app: upp-suggestions-umbrella-mock
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: upp-suggestions-umbrella-mock
+  labels:
+    chart: upp-suggestions-umbrella-mock
+    chartVersion: "{{ .Chart.Version | trunc 63 }}"
+    visualize: "true"
+    app: upp-suggestions-umbrella-mock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: upp-suggestions-umbrella-mock
+  template:
+    metadata:
+      labels:
+        app: upp-suggestions-umbrella-mock
+        visualize: "true"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - upp-suggestions-umbrella-mock
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: upp-suggestions-umbrella-mock
+        image: "coco/upp-suggestions-umbrella-mock:{{ .Chart.Version }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 9000
+        livenessProbe:
+          tcpSocket:
+            port: 9000
+          initialDelaySeconds: 10
+        readinessProbe:
+          httpGet:
+            path: "/__gtg"
+            port: 9000
+          initialDelaySeconds: 15
+          periodSeconds: 30
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
