@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Financial-Times/api-endpoint"
+	"github.com/Financial-Times/draft-content-suggestions/commons"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/health"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
@@ -56,16 +57,16 @@ func main() {
 
 	draftContentEndpoint := app.String(cli.StringOpt{
 		Name:   "draft-content-endpoint",
-		Value:  "http://test.api.ft.com/drafts/content",
+		Value:  "http://draft-content-api:8080/drafts/content",
 		Desc:   "Endpoint for Draft Content API",
 		EnvVar: "DRAFT_CONTENT_ENDPOINT",
 	})
 
-	draftContentHealthEndpoint := app.String(cli.StringOpt{
-		Name:   "draft-content-health-endpoint",
-		Value:  "http://test.api.ft.com/__health",
-		Desc:   "Health Endpoint for Draft Content API",
-		EnvVar: "DRAFT_CONTENT_HEALTH_ENDPOINT",
+	draftContentGtgEndpoint := app.String(cli.StringOpt{
+		Name:   "draft-content-gtg-endpoint",
+		Value:  "http://draft-content-api:8080/__gtg",
+		Desc:   "GTG Endpoint for Draft Content API",
+		EnvVar: "DRAFT_CONTENT_GTG_ENDPOINT",
 	})
 
 	suggestionsEndpoint := app.String(cli.StringOpt{
@@ -86,7 +87,7 @@ func main() {
 	log.SetLevel(log.InfoLevel)
 	log.Infof("[Startup] draft-content-suggestions is starting ")
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := commons.NewFTHttpClient("PAC", *appSystemCode, 10*time.Second)
 
 	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsAPIKey, client)
 
@@ -95,7 +96,7 @@ func main() {
 		return
 	}
 
-	contentAPI, err := draft.NewContentAPI(*draftContentEndpoint, *draftContentHealthEndpoint, client)
+	contentAPI, err := draft.NewContentAPI(*draftContentEndpoint, *draftContentGtgEndpoint, client)
 
 	if err != nil {
 		log.WithError(err).Error("Draft Content API error, exiting ...")

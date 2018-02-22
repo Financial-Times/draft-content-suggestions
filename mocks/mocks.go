@@ -1,12 +1,12 @@
 package mocks
 
 import (
-	"net/http/httptest"
-	"net/http"
-	"io/ioutil"
 	"encoding/json"
-	"github.com/stretchr/testify/mock"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 )
+
 const ValidMockContentUUID = "6f14ea94-690f-3ed4-98c7-b926683c735a"
 
 const MissingMockContentUUID = "9d5e441e-0b02-11e8-1234-42f857ea9f1"
@@ -115,7 +115,7 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		if r.Header.Get("X-Api-Key") == "" {
-			w.WriteHeader(http.StatusForbidden)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -146,20 +146,4 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 	}))
 
 	return server
-}
-
-type MockedResponseWriter struct {
-	mock.Mock
-}
-
-func (w *MockedResponseWriter) Header() http.Header {
-	return w.Called().Get(0).(http.Header)
-}
-
-func (w *MockedResponseWriter) Write(bytes []byte) (int, error) {
-	args := w.Called(bytes)
-	return args.Int(0), args.Error(1)
-}
-
-func (w *MockedResponseWriter) WriteHeader(i int) {
 }

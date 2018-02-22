@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/Financial-Times/service-status-go/buildinfo"
+	"github.com/Financial-Times/go-ft-http-transport/transport"
 	tidutils "github.com/Financial-Times/transactionid-utils-go"
 	"github.com/satori/go.uuid"
+	"time"
 )
 
 // Common type/behaviour definition for an endpoint
@@ -25,28 +25,9 @@ type Endpoint interface {
 	// Validates the structure of the url/uri(s)
 	IsValid() error
 
-	// IsHealthy
+	// IsGTG
 	// Checks if this endpoint is actually reachable and performing as expected
-	IsHealthy(ctx context.Context) (string, error)
-}
-
-// NewHttpRequest provides a bare minimum request with mandatory headers included
-func NewHttpRequest(ctx context.Context, method string, urlStr string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, urlStr, body)
-	if err != nil {
-		return nil, err
-	}
-
-	tid, err := tidutils.GetTransactionIDFromContext(ctx)
-
-	if err != nil {
-		tid = tidutils.NewTransactionID()
-	}
-
-	req.Header.Set(tidutils.TransactionIDHeader, tid)
-
-	req.Header.Set("User-Agent", "PAC-draft-content-suggestions/"+strings.Replace(buildinfo.GetBuildInfo().Version, " ", "-", -1))
-	return req, nil
+	IsGTG(ctx context.Context) (string, error)
 }
 
 type message struct {
@@ -87,4 +68,10 @@ func ValidateEndpoint(endpoint string) error {
 func ValidateUUID(u string) error {
 	_, err := uuid.FromString(u)
 	return err
+}
+
+// NewFTHttpClient provides a FT compliant http client.
+func NewFTHttpClient(platform string, systemCode string, timeout time.Duration) *http.Client {
+	delegatingTransport := transport.NewTransport().WithStandardUserAgent(platform, systemCode)
+	return &http.Client{Timeout: timeout, Transport: delegatingTransport}
 }

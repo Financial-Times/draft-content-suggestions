@@ -1,15 +1,15 @@
 package main
 
 import (
-	"testing"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 
-	"github.com/Financial-Times/draft-content-suggestions/suggestions"
-	"github.com/Financial-Times/draft-content-suggestions/mocks"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
-	"github.com/stretchr/testify/assert"
+	"github.com/Financial-Times/draft-content-suggestions/mocks"
+	"github.com/Financial-Times/draft-content-suggestions/suggestions"
 	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRequestHandlerSuccess(t *testing.T) {

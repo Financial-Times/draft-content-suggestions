@@ -92,7 +92,7 @@ paths:
         Fetches the draft content with the provided uuid from draft-content-api and returns suggestions via
         using suggestions umbrella service.
       produces:
-        - application/json; charset=UTF-8
+        - application/json
       tags:
         - Public API
       parameters:

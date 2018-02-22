@@ -35,7 +35,7 @@ Options:
         --app-name="Annotation Suggestions API"                   Application name ($APP_NAME)
         --port="8080"                                           Port to listen on ($APP_PORT)
         --draft-content-endpoint="http://localhost:9000/drafts/content" Draft Content Service
-        --draft-content-health-endpoint="http://localhost:9000/__gtg" Draft Content Health Service
+        --draft-content-gtg-endpoint="http://localhost:9000/__gtg" Draft Content Health Service
         --suggestions-umbrella-endpoint="http://test.api.ft.com/content/suggest" Suggestions Umbrella Service
         --suggestions-api-key="" Suggestions service apiKey
         
