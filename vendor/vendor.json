@@ -11,6 +11,14 @@
 			"versionExact": "0.0.2"
 		},
 		{
+			"checksumSHA1": "9RROWvq7AJKeefne3kS8OhYZPz0=",
+			"path": "github.com/Financial-Times/go-ft-http-transport/transport",
+			"revision": "1d8ef88257cbc435539abe59cdc1ba6efb12a1fc",
+			"revisionTime": "2018-02-16T16:42:39Z",
+			"version": "0.0.2",
+			"versionExact": "0.0.2"
+		},
+		{
 			"checksumSHA1": "G8lW8pPVLieqh/MTJZkvI/i/WyM=",
 			"path": "github.com/Financial-Times/go-fthealth/v1_1",
 			"revision": "1b007e2b37b7936dfb6671fa17e5a29fd35a08ea",

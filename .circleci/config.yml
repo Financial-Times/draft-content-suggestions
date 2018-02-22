@@ -55,6 +55,10 @@ jobs:
         environment:
           GOPATH: /go
           API_YML: /go/src/github.com/Financial-Times/draft-content-suggestions/_ft/api.yml
+          SUGGESTIONS_ENDPOINT: http://localhost:9000/content/suggest
+          DRAFT_CONTENT_ENDPOINT: http://localhost:9000/drafts/content
+          DRAFT_CONTENT_GTG_ENDPOINT: http://localhost:9000/__gtg
+          SUGGESTIONS_API_KEY: 12345
       - image: peteclarkft/ersatz:stable
     steps:
       - checkout

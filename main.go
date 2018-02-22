@@ -65,7 +65,7 @@ func main() {
 	draftContentGtgEndpoint := app.String(cli.StringOpt{
 		Name:   "draft-content-gtg-endpoint",
 		Value:  "http://draft-content-api:8080/__gtg",
-		Desc:   "Health Endpoint for Draft Content API",
+		Desc:   "GTG Endpoint for Draft Content API",
 		EnvVar: "DRAFT_CONTENT_GTG_ENDPOINT",
 	})
 
