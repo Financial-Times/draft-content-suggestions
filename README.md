@@ -12,7 +12,7 @@ Download the source code, dependencies and test dependencies:
 
         go get -u github.com/kardianos/govendor
         cd $GOPATH/src/
-        git clone github.com/Financial-Times/draft-content-suggestions
+        git clone github.com:Financial-Times/draft-content-suggestions
         cd github.com/Financial-Times/draft-content-suggestions
         govendor sync
         go build .

@@ -33,18 +33,16 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Chart.Version }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-        - name: ENV_VAR_1
-          value: {{ .Values.env.ENV_VAR_1 }}
-        - name: ENV_VAR_WITH_VALUE_IN_CONFIG_MAP
+        - name: SUGGESTIONS_ENDPOINT
           valueFrom:
             configMapKeyRef:
               name: global-config
-              key: key.for.configmap.entry
-        - name: ENV_VAR_WITH_VALUE_IN_SECRET_MAP
+              key: upp-suggestions-umbrella-endpoint
+        - name: SUGGESTIONS_API_KEY
           valueFrom:
             secretKeyRef:
-              name: global-secrets
-              key: key.for.secret.entry
+              name: draft-content-suggestions
+              key: upp-suggestions-umbrella-api-key
         ports:
         - containerPort: 8080
         livenessProbe:
