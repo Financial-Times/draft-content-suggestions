@@ -111,15 +111,17 @@ workflows:
   test-and-build-docker:
     jobs:
       - build:
-          tags:
-            only: /.*/
+          filters:
+            tags:
+              only: /.*/
       - dredd
       - dockerfile:
           requires:
             - build
       - suggestions_mock_dockerfile:
-          tags:
-            only: /.*/
+          filters:
+            tags:
+              only: /.*/
           requires:
             - build
       - suggestions_mock_release:
