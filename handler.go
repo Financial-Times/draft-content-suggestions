@@ -23,7 +23,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	err := commons.ValidateUUID(uuid)
 
 	if err != nil {
-		log.WithError(err).Warn("Request with invalid uuid:", uuid)
+		log.WithError(err).WithField("uuid", uuid).Warn("Invalid UUID")
 		commons.WriteJSONMessage(writer, http.StatusBadRequest, "Invalid UUID")
 		return
 	}
@@ -33,8 +33,8 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	content, err := rh.dca.FetchDraftContent(ctx, uuid)
 
 	if err != nil {
-		log.WithError(err).Error("Draft content api access has failed for uuid:", uuid)
-		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Draft content api access has failed for uuid: %v", uuid))
+		log.WithError(err).WithField("uuid", uuid).Error("Draft content api access has failed.")
+		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Draft content api access has failed."))
 		return
 	}
 
@@ -46,8 +46,8 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	suggestion, err := rh.sua.FetchSuggestions(ctx, content)
 
 	if err != nil {
-		log.WithError(err).Error("Suggestions umbrella api access has failed for uuid:", uuid)
-		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Suggestions umbrella api access has failed for uuid: %v", uuid))
+		log.WithError(err).WithField("uuid", uuid).Error("Suggestions umbrella api access has failed")
+		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Suggestions umbrella api access has failed"))
 		return
 	}
 
@@ -57,7 +57,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	// could be related to intermittent/temporary network issues
 	// or original Tagme request is no more waiting for a response.
 	if err != nil {
-		log.WithError(err).Error(fmt.Sprintf("Failed responding to draft content suggestions request for uuid: %s", uuid))
+		log.WithError(err).WithField("uuid", uuid).Error(fmt.Sprintf("Failed responding to draft content suggestions request"))
 	}
 
 }
