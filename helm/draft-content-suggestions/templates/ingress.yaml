@@ -9,6 +9,7 @@ metadata:
     ingress.kubernetes.io/auth-secret: basic-auth
     # message to display with an appropiate context why the authentication is required
     ingress.kubernetes.io/auth-realm: "Authentication Required"
+    ingress.kubernetes.io/rewrite-target: /drafts/content
 spec:
   rules:
     - host: "*.ft.com"
