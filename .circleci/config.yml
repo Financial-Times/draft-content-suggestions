@@ -110,9 +110,9 @@ workflows:
   version: 2
   test-and-build-docker:
     jobs:
-      - build
-        tags:
-          only: /.*/
+      - build:
+          tags:
+            only: /.*/
       - dredd
       - dockerfile:
           requires:
