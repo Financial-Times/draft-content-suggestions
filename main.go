@@ -36,7 +36,7 @@ func main() {
 
 	appName := app.String(cli.StringOpt{
 		Name:   "app-name",
-		Value:  "Annotation Suggestions API",
+		Value:  "Draft Content Suggestions",
 		Desc:   "Application name",
 		EnvVar: "APP_NAME",
 	})
