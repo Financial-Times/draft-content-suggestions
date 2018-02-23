@@ -87,7 +87,7 @@ paths:
               dateTime: "20161123122615"
   /drafts/content/{uuid}/suggestions:
     get:
-      summary: Provides suggestions for provided draft content's uuid
+      summary: Get Draft Content Suggestions
       description: >
         Fetches the draft content with the provided uuid from draft-content-api and returns suggestions via
         using suggestions umbrella service.

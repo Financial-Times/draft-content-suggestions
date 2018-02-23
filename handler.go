@@ -23,7 +23,8 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	err := commons.ValidateUUID(uuid)
 
 	if err != nil {
-		commons.WriteJSONMessage(writer, http.StatusBadRequest, fmt.Sprintf("Invalid UUID, %v", err))
+		log.WithError(err).Warn("Request with invalid uuid:", uuid)
+		commons.WriteJSONMessage(writer, http.StatusBadRequest, "Invalid UUID")
 		return
 	}
 
@@ -32,7 +33,8 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	content, err := rh.dca.FetchDraftContent(ctx, uuid)
 
 	if err != nil {
-		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Draft content api access error: %v", err))
+		log.WithError(err).Error("Draft content api access has failed for uuid:", uuid)
+		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Draft content api access has failed for uuid: %v", uuid))
 		return
 	}
 
@@ -44,7 +46,8 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	suggestion, err := rh.sua.FetchSuggestions(ctx, content)
 
 	if err != nil {
-		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Suggestions umbrella api access error: %v", err))
+		log.WithError(err).Error("Suggestions umbrella api access has failed for uuid:", uuid)
+		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Suggestions umbrella api access has failed for uuid: %v", uuid))
 		return
 	}
 
@@ -54,7 +57,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	// could be related to intermittent/temporary network issues
 	// or original Tagme request is no more waiting for a response.
 	if err != nil {
-		log.WithError(err).Error(fmt.Println("Failed responding to draft content suggestions request for uuid:", uuid))
+		log.WithError(err).Error(fmt.Sprintf("Failed responding to draft content suggestions request for uuid: %s", uuid))
 	}
 
 }
