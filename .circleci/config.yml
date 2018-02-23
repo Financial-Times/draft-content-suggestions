@@ -113,16 +113,12 @@ workflows:
       - build:
           tags:
             only: /.*/
-          branches:
-            only: /.*/
       - dredd
       - dockerfile:
           requires:
             - build
       - suggestions_mock_dockerfile:
           tags:
-            only: /.*/
-          branches:
             only: /.*/
           requires:
             - build
