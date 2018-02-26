@@ -34,13 +34,6 @@ func TestDraftContentAPI_IsHealthyFailure(t *testing.T) {
 }
 func TestDraftContentAPI_FetchDraftContentSuccess(t *testing.T) {
 
-	mockDraftContent := &Content{
-		UUID:   "6f14ea94-690f-3ed4-98c7-b926683c735a",
-		Body:   "<body><content data-embedded=\"true\" id=\"c0cc4ca2-0b43-11e8-24ad-bec2279df517\" type=\"http://www.ft.com/ontology/content/ImageSet\"></content><p>US stocks see-sawed in early trading on Tuesday, as volatility on global markets intensified, breaking an extended period of calm for investors.xxxx</body>",
-		Title:  "Wall Street stocks xxx",
-		Byline: "Eric Platt in New York, Michael Hunter and Adam Samson in London",
-	}
-
 	testServer := mocks.NewDraftContentTestServer(true)
 	defer testServer.Close()
 
@@ -51,11 +44,7 @@ func TestDraftContentAPI_FetchDraftContentSuccess(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.True(t, content != nil)
-
-	assert.Equal(t, mockDraftContent.UUID, content.UUID)
-	assert.Equal(t, mockDraftContent.Byline, content.Byline)
-	assert.Equal(t, mockDraftContent.Title, content.Title)
-	assert.Equal(t, mockDraftContent.Body, content.Body)
+	assert.True(t, len(content) > 0)
 }
 func TestDraftContentAPI_FetchDraftContentMissing(t *testing.T) {
 

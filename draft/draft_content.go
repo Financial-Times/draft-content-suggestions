@@ -2,7 +2,6 @@ package draft
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -35,7 +34,7 @@ func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Clie
 
 // ContentApi for accessing to draft-content-api endpoint
 type ContentAPI interface {
-	FetchDraftContent(ctx context.Context, uuid string) (content *Content, err error)
+	FetchDraftContent(ctx context.Context, uuid string) (content []byte, err error)
 	commons.Endpoint
 }
 
@@ -45,7 +44,7 @@ type draftContentAPI struct {
 	httpClient     *http.Client
 }
 
-func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) (*Content, error) {
+func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([]byte, error) {
 
 	requestPath := d.endpoint + uuid
 	request, err := http.NewRequest(http.MethodGet, requestPath, nil)
@@ -72,15 +71,7 @@ func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) (*
 		return nil, err
 	}
 
-	draftContent := &Content{}
-
-	err = json.Unmarshal(bytes, draftContent)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return draftContent, nil
+	return bytes, nil
 }
 
 func (d *draftContentAPI) Endpoint() string {
@@ -112,11 +103,4 @@ func (d *draftContentAPI) IsGTG(ctx context.Context) (string, error) {
 
 func (d *draftContentAPI) IsValid() error {
 	return commons.ValidateEndpoint(d.endpoint)
-}
-
-type Content struct {
-	UUID   string `json:"uuid"`
-	Title  string `json:"title"`
-	Body   string `json:"body"`
-	Byline string `json:"byline"`
 }

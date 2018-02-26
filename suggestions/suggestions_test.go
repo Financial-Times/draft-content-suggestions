@@ -2,10 +2,10 @@ package suggestions
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 
-	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/mocks"
 	"github.com/stretchr/testify/assert"
 )
@@ -64,12 +64,16 @@ func TestUmbrellaAPI_FetchDraftContentFailure(t *testing.T) {
 	assert.True(t, suggestions == nil)
 }
 
-func newMockDraftContent() *draft.Content {
-	mockDraftContent := &draft.Content{
-		UUID:   "9d5e441e-0b02-11e8-8eb7-42f857ea9f0",
-		Body:   "<body><content data-embedded=\"true\" id=\"c0cc4ca2-0b43-11e8-24ad-bec2279df517\" type=\"http://www.ft.com/ontology/content/ImageSet\"></content><p>US stocks see-sawed in early trading on Tuesday, as volatility on global markets intensified, breaking an extended period of calm for investors.xxxx</body>",
-		Title:  "Wall Street stocks xxx",
-		Byline: "Eric Platt in New York, Michael Hunter and Adam Samson in London",
-	}
-	return mockDraftContent
+func newMockDraftContent() []byte {
+
+	mockContent := make(map[string]interface{})
+
+	mockContent["uuid"] = "9d5e441e-0b02-11e8-8eb7-42f857ea9f0"
+	mockContent["body"] = "<body><content data-embedded=\"true\" id=\"c0cc4ca2-0b43-11e8-24ad-bec2279df517\" type=\"http://www.ft.com/ontology/content/ImageSet\"></content><p>US stocks see-sawed in early trading on Tuesday, as volatility on global markets intensified, breaking an extended period of calm for investors.xxxx</body>"
+	mockContent["title"] = "Wall Street stocks xxx"
+	mockContent["byline"] = "Eric Platt in New York, Michael Hunter and Adam Samson in London"
+
+	bytes, _ := json.Marshal(mockContent)
+
+	return bytes
 }

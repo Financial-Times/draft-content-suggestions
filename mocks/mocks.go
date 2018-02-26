@@ -132,7 +132,7 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 				return
 			}
 
-			var content map[string]interface{}
+			content := make(map[string]interface{})
 			err = json.Unmarshal(bytes, &content)
 
 			if err != nil {

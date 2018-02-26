@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/Financial-Times/draft-content-suggestions/commons"
-	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/satori/go.uuid"
 )
 
@@ -31,7 +30,7 @@ type UmbrellaAPI interface {
 	// FetchSuggestions
 	// Makes a API request to Suggestions Umbrella and returns the
 	// []byte body
-	FetchSuggestions(ctx context.Context, content *draft.Content) (suggestion []byte, err error)
+	FetchSuggestions(ctx context.Context, content []byte) (suggestion []byte, err error)
 
 	// Embedded Endpoint interface, check its godoc
 	commons.Endpoint
@@ -43,14 +42,9 @@ type umbrellaAPI struct {
 	httpClient *http.Client
 }
 
-func (u *umbrellaAPI) FetchSuggestions(ctx context.Context, content *draft.Content) (suggestion []byte, err error) {
-	jsonBytes, err := json.Marshal(content)
+func (u *umbrellaAPI) FetchSuggestions(ctx context.Context, content []byte) (suggestion []byte, err error) {
 
-	if err != nil {
-		return nil, err
-	}
-
-	request, err := http.NewRequest(http.MethodPost, u.endpoint, bytes.NewBuffer(jsonBytes))
+	request, err := http.NewRequest(http.MethodPost, u.endpoint, bytes.NewBuffer(content))
 	request.Header.Set("X-Api-Key", u.apiKey)
 
 	if err != nil {
@@ -87,9 +81,11 @@ func (u *umbrellaAPI) Endpoint() string {
 func (u *umbrellaAPI) IsGTG(ctx context.Context) (string, error) {
 	newUUID := uuid.NewV4()
 
-	c := &draft.Content{UUID: newUUID.String()}
+	c := make(map[string]interface{})
+	c["uuid"] = newUUID.String()
+	content, err := json.Marshal(c)
 
-	_, err := u.FetchSuggestions(ctx, c)
+	_, err = u.FetchSuggestions(ctx, content)
 
 	if err != nil {
 		return "", err

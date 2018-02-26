@@ -1,11 +1,10 @@
 package health
 
 import (
+	"context"
 	"errors"
 	"testing"
 
-	"context"
-	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -77,11 +76,11 @@ func (_m *UmbrellaAPI) Endpoint() string {
 }
 
 // FetchSuggestions provides a mock function with given fields: ctx, content
-func (_m *UmbrellaAPI) FetchSuggestions(ctx context.Context, content *draft.Content) ([]byte, error) {
+func (_m *UmbrellaAPI) FetchSuggestions(ctx context.Context, content []byte) ([]byte, error) {
 	ret := _m.Called(ctx, content)
 
 	var r0 []byte
-	if rf, ok := ret.Get(0).(func(context.Context, *draft.Content) []byte); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []byte) []byte); ok {
 		r0 = rf(ctx, content)
 	} else {
 		if ret.Get(0) != nil {
@@ -90,7 +89,7 @@ func (_m *UmbrellaAPI) FetchSuggestions(ctx context.Context, content *draft.Cont
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *draft.Content) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, []byte) error); ok {
 		r1 = rf(ctx, content)
 	} else {
 		r1 = ret.Error(1)
@@ -154,15 +153,15 @@ func (_m *ContentAPI) Endpoint() string {
 }
 
 // FetchDraftContent provides a mock function with given fields: ctx, uuid
-func (_m *ContentAPI) FetchDraftContent(ctx context.Context, uuid string) (*draft.Content, error) {
+func (_m *ContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([]byte, error) {
 	ret := _m.Called(ctx, uuid)
 
-	var r0 *draft.Content
-	if rf, ok := ret.Get(0).(func(context.Context, string) *draft.Content); ok {
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(context.Context, string) []byte); ok {
 		r0 = rf(ctx, uuid)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*draft.Content)
+			r0 = ret.Get(0).([]byte)
 		}
 	}
 
