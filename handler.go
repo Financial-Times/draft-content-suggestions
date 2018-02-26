@@ -34,7 +34,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 
 	if err != nil {
 		log.WithError(err).WithField("uuid", uuid).Error("Draft content api access has failed.")
-		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Draft content api access has failed."))
+		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, "Draft content api access has failed.")
 		return
 	}
 
@@ -47,7 +47,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 
 	if err != nil {
 		log.WithError(err).WithField("uuid", uuid).Error("Suggestions umbrella api access has failed")
-		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, fmt.Sprintf("Suggestions umbrella api access has failed"))
+		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, "Suggestions umbrella api access has failed")
 		return
 	}
 
@@ -57,7 +57,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	// could be related to intermittent/temporary network issues
 	// or original Tagme request is no more waiting for a response.
 	if err != nil {
-		log.WithError(err).WithField("uuid", uuid).Error(fmt.Sprintf("Failed responding to draft content suggestions request"))
+		log.WithError(err).WithField("uuid", uuid).Error("Failed responding to draft content suggestions request")
 	}
 
 }
