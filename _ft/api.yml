@@ -105,26 +105,58 @@ paths:
       responses:
         200:
           description: Suggestions Response
+          schema:
+            type: object
+            properties:
+              suggestions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: The canonical ID of the concept
+                      x-example: http://www.ft.com/thing/d7113d1d-ed66-3adf-9910-1f62b2c40e6a
+                    predicate:
+                      type: string
+                      description: The relationship between the concept and this piece of FT content. The list below is non-exhaustive and subject to change.
+                      enum:
+                        - http://www.ft.com/ontology/annotation/about
+                        - http://www.ft.com/ontology/implicitlyAbout
+                        - http://www.ft.com/ontology/annotation/mentions
+                        - http://www.ft.com/ontology/classification/isClassifiedBy
+                        - http://www.ft.com/ontology/implicitlyClassifiedBy
+                        - http://www.ft.com/ontology/hasContributor
+                    type:
+                      type: string
+                      description: The type of concept, i.e. Person, Organisation, Topic
+                    apiUrl:
+                      type: string
+                      description: The FT API url of the concept
+                      x-example: http://api.ft.com/things/5507ab98-b747-3ebc-b816-11603b9009f4
+                    prefLabel:
+                      type: string
+                      description: The preferred display label for the concept.
+                    isFTAuthor:
+                      type: boolean
+                      description: Is this person an FT author or not. Only applies to concepts of type People.
+                  required:
+                    - id
+                    - predicate
+            required:
+              - suggestions
           examples:
             application/json:
-              suggestions: [
-                {
-                  "predicate": "http://www.ft.com/ontology/annotation/about",
-                  "id": "http://www.ft.com/thing/6f14ea94-690f-3ed4-98c7-b926683c735a",
-                  "apiUrl": "http://api.ft.com/people/6f14ea94-690f-3ed4-98c7-b926683c735a",
-                  "prefLabel": "Donald Kaberuka",
-                  "type": "http://www.ft.com/ontology/person/Person",
-                  "isFTAuthor": false
-                },
-                {
-                  "predicate": "http://www.ft.com/ontology/annotation/mentions",
-                  "id": "http://www.ft.com/thing/9a5e3b4a-55da-498c-816f-9c534e1392bd",
-                  "apiUrl": "http://api.ft.com/people/9a5e3b4a-55da-498c-816f-9c534e1392bd",
-                  "prefLabel": "Lawrence Summers",
-                  "type": "http://www.ft.com/ontology/person/Person",
-                  "isFTAuthor": true
-                },
-              ]
-
-
-
+              suggestions:
+                - apiUrl: http://api.ft.com/people/6f14ea94-690f-3ed4-98c7-b926683c735a
+                  id: http://www.ft.com/thing/6f14ea94-690f-3ed4-98c7-b926683c735a
+                  isFTAuthor: false
+                  predicate: http://www.ft.com/ontology/annotation/about
+                  prefLabel: Donald Kaberuka
+                  type: http://www.ft.com/ontology/person/Person
+                - apiUrl: http://api.ft.com/people/9a5e3b4a-55da-498c-816f-9c534e1392bd
+                  id: http://www.ft.com/thing/9a5e3b4a-55da-498c-816f-9c534e1392bd
+                  isFTAuthor: true
+                  predicate: http://www.ft.com/ontology/annotation/mentions
+                  prefLabel: Lawrence Summers
+                  type: http://www.ft.com/ontology/person/Person
