@@ -85,7 +85,7 @@ fixtures:
         checks:
           - id: check-api-health
             name: Check API Health
-            ok: false
+            ok: true
             severity: 1
             businessImpact: A business impact this failure might have
             technicalSummary: A technical description of what's gone wrong
