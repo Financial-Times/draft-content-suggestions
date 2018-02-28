@@ -4,4 +4,4 @@ FROM peteclarkft/ersatz:0.0.4
 COPY ./ersatz-fixtures.yml /_ft/ersatz-fixtures.yml
 
 WORKDIR /
-CMD [ "/ersatz" ]
+CMD [ "/ersatz", "-p", "8080" ]

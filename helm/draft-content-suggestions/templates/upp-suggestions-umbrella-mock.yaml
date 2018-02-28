@@ -11,7 +11,7 @@ metadata:
 spec:
   ports:
     - port: 8080
-      targetPort: 9000
+      targetPort: 8080
   selector:
     app: upp-suggestions-umbrella-mock
 
@@ -51,15 +51,15 @@ spec:
         image: "coco/upp-suggestions-umbrella-mock:{{ .Chart.Version }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-        - containerPort: 9000
+        - containerPort: 8080
         livenessProbe:
           tcpSocket:
-            port: 9000
+            port: 8080
           initialDelaySeconds: 10
         readinessProbe:
           httpGet:
             path: "/__gtg"
-            port: 9000
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 30
         resources:
