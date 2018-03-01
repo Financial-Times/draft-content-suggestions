@@ -48,37 +48,6 @@ jobs:
       - run:
           name: Build Dockerfile
           command: docker build .
-  suggestions_mock_dockerfile:
-    working_directory: /draft-content-suggestions
-    docker:
-      - image: docker:17.09.0-ce-git
-    steps:
-      - checkout
-      - setup_docker_engine
-      - run:
-          name: Build Dockerfile
-          command: |
-            cd ./_ft/
-            docker build .
-  suggestions_mock_release:
-    working_directory: /draft-content-suggestions
-    docker:
-      - image: docker:17.09.0-ce-git
-    steps:
-      - checkout
-      - setup_docker_engine
-      - run:
-          name: Login Docker
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - run:
-          name: Build Dockerfile
-          command: |
-            cd ./_ft/
-            docker build -t coco/upp-suggestions-umbrella-mock:${CIRCLE_TAG} .
-      - run:
-          name: Push Suggestions Mock
-          command: docker push coco/upp-suggestions-umbrella-mock:${CIRCLE_TAG}
-
   dredd:
     working_directory: /go/src/github.com/Financial-Times/draft-content-suggestions
     docker:
@@ -110,25 +79,8 @@ workflows:
   version: 2
   test-and-build-docker:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /.*/
+      - build
       - dredd
       - dockerfile:
           requires:
             - build
-      - suggestions_mock_dockerfile:
-          filters:
-            tags:
-              only: /.*/
-          requires:
-            - build
-      - suggestions_mock_release:
-          requires:
-            - suggestions_mock_dockerfile
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              ignore: /.*/
