@@ -33,6 +33,16 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Chart.Version }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
+        - name: DRAFT_CONTENT_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: draft-content-endpoint
+        - name: DRAFT_CONTENT_GTG_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: draft-content-gtg-endpoint
         - name: SUGGESTIONS_ENDPOINT
           valueFrom:
             configMapKeyRef:
