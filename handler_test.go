@@ -10,6 +10,7 @@ import (
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"time"
 )
 
 func TestRequestHandlerSuccess(t *testing.T) {
@@ -23,7 +24,7 @@ func TestRequestHandlerSuccess(t *testing.T) {
 	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.URL+"/drafts/content", draftContentTestServer.URL+"/__gtg", http.DefaultClient)
 	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.URL, "12345", http.DefaultClient)
 
-	requestHandler := requestHandler{contentAPI, umbrellaAPI}
+	requestHandler := requestHandler{contentAPI, umbrellaAPI, 8 * time.Second}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/drafts/content/{uuid}/suggestions", requestHandler.draftContentSuggestionsRequest)
@@ -31,11 +32,14 @@ func TestRequestHandlerSuccess(t *testing.T) {
 
 	defer ts.Close()
 
-	//resp, err := http.Get(ts.URL + "/drafts/content/" + mocks.ValidMockContentUUID + "/suggestions")
 	resp, err := http.Get(ts.URL + "/drafts/content/" + mocks.ValidMockContentUUID + "/suggestions")
 
 	defer resp.Body.Close()
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestRequestHandlerSLATimeout(t *testing.T) {
+
 }
