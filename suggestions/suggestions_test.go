@@ -14,7 +14,7 @@ const apiKey = "12345"
 
 func TestUmbrellaAPI_IsHealthySuccess(t *testing.T) {
 
-	testServer := mocks.NewUmbrellaTestServer(true)
+	testServer := mocks.NewUmbrellaTestServer(true, 0)
 	defer testServer.Close()
 
 	umbrellaAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", apiKey, http.DefaultClient)
@@ -25,7 +25,7 @@ func TestUmbrellaAPI_IsHealthySuccess(t *testing.T) {
 	assert.NoError(t, err)
 }
 func TestUmbrellaAPI_IsHealthyFailure(t *testing.T) {
-	testServer := mocks.NewUmbrellaTestServer(false)
+	testServer := mocks.NewUmbrellaTestServer(false, 0)
 	defer testServer.Close()
 
 	umbrellaAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", apiKey, http.DefaultClient)
@@ -39,7 +39,7 @@ func TestUmbrellaAPI_FetchSuggestions(t *testing.T) {
 
 	mockDraftContent := newMockDraftContent()
 
-	testServer := mocks.NewUmbrellaTestServer(true)
+	testServer := mocks.NewUmbrellaTestServer(true, 0)
 	defer testServer.Close()
 
 	umbrellaAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", apiKey, http.DefaultClient)
@@ -52,7 +52,7 @@ func TestUmbrellaAPI_FetchSuggestions(t *testing.T) {
 }
 func TestUmbrellaAPI_FetchDraftContentFailure(t *testing.T) {
 
-	testServer := mocks.NewUmbrellaTestServer(true)
+	testServer := mocks.NewUmbrellaTestServer(true, 0)
 	testServer.Close()
 
 	contentAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", apiKey, http.DefaultClient)
