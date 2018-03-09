@@ -114,7 +114,7 @@ func main() {
 		log.Infof("System code: %s, App Name: %s, Port: %s", *appSystemCode, *appName, *port)
 
 		go func() {
-			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, time.Duration(*appTimeout)})
+			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, time.Duration(*appTimeout) * time.Millisecond})
 		}()
 
 		waitForSignal()
