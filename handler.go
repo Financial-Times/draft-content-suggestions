@@ -40,7 +40,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	if err != nil {
 		netError, assertion := err.(net.Error)
 		if assertion && netError.Timeout() {
-			log.WithField("uuid", uuid).Error("Timed out processing draft content suggestions request during fetching draft content")
+			log.WithError(err).WithField("uuid", uuid).Error("Timed out processing draft content suggestions request during fetching draft content")
 			commons.WriteJSONMessage(writer, http.StatusRequestTimeout, "Draft content api access has timed out.")
 			return
 		}
@@ -60,7 +60,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	if err != nil {
 		netError, assertion := err.(net.Error)
 		if assertion && netError.Timeout() {
-			log.WithField("uuid", uuid).Error("Timed out processing draft content suggestions request during suggestions umbrella api access")
+			log.WithError(err).WithField("uuid", uuid).Error("Timed out processing draft content suggestions request during suggestions umbrella api access")
 			commons.WriteJSONMessage(writer, http.StatusRequestTimeout, "Suggestions Umbrella api access has timed out.")
 			return
 		}
