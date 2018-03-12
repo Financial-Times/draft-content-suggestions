@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
-	"net"
 
 	"github.com/Financial-Times/draft-content-suggestions/commons"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
@@ -38,8 +38,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	content, err := rh.dca.FetchDraftContent(ctx, uuid)
 
 	if err != nil {
-		netError, assertion := err.(net.Error)
-		if assertion && netError.Timeout() {
+		if isTimeoutError(err) {
 			log.WithError(err).WithField("uuid", uuid).Error("Timed out processing draft content suggestions request during fetching draft content")
 			commons.WriteJSONMessage(writer, http.StatusRequestTimeout, "Draft content api access has timed out.")
 			return
@@ -58,8 +57,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	suggestion, err := rh.sua.FetchSuggestions(ctx, content)
 
 	if err != nil {
-		netError, assertion := err.(net.Error)
-		if assertion && netError.Timeout() {
+		if isTimeoutError(err) {
 			log.WithError(err).WithField("uuid", uuid).Error("Timed out processing draft content suggestions request during suggestions umbrella api access")
 			commons.WriteJSONMessage(writer, http.StatusRequestTimeout, "Suggestions Umbrella api access has timed out.")
 			return
@@ -76,4 +74,16 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	if err != nil {
 		log.WithError(err).WithField("uuid", uuid).Error("Failed responding to draft content suggestions request")
 	}
+}
+
+func isTimeoutError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if netError, assertion := err.(net.Error); assertion {
+		return netError.Timeout()
+	}
+
+	return false
 }
