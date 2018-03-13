@@ -31,8 +31,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 		return
 	}
 
-	now := time.Now()
-	ctx, cancelCtx := context.WithTimeout(commons.NewContextFromRequest(request), now.Add(rh.srt).Sub(now))
+	ctx, cancelCtx := context.WithTimeout(commons.NewContextFromRequest(request), rh.srt)
 	defer cancelCtx()
 
 	content, err := rh.dca.FetchDraftContent(ctx, uuid)
