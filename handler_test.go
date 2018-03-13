@@ -64,6 +64,6 @@ func TestRequestHandlerSLATimeout(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusRequestTimeout, resp.StatusCode)
+	assert.Equal(t, http.StatusGatewayTimeout, resp.StatusCode)
 
 }
