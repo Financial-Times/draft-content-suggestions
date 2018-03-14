@@ -15,9 +15,9 @@ const apiKey = "12345"
 func TestUmbrellaAPI_IsHealthySuccess(t *testing.T) {
 
 	testServer := mocks.NewUmbrellaTestServer(true, 0)
-	defer testServer.Close()
+	defer testServer.Server.Close()
 
-	umbrellaAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", apiKey, http.DefaultClient)
+	umbrellaAPI, err := NewUmbrellaAPI(testServer.Server.URL+"/content/suggest", apiKey, http.DefaultClient)
 
 	assert.NoError(t, err)
 
@@ -26,9 +26,9 @@ func TestUmbrellaAPI_IsHealthySuccess(t *testing.T) {
 }
 func TestUmbrellaAPI_IsHealthyFailure(t *testing.T) {
 	testServer := mocks.NewUmbrellaTestServer(false, 0)
-	defer testServer.Close()
+	defer testServer.Server.Close()
 
-	umbrellaAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", apiKey, http.DefaultClient)
+	umbrellaAPI, err := NewUmbrellaAPI(testServer.Server.URL+"/content/suggest", apiKey, http.DefaultClient)
 
 	assert.NoError(t, err)
 
@@ -40,9 +40,9 @@ func TestUmbrellaAPI_FetchSuggestions(t *testing.T) {
 	mockDraftContent := newMockDraftContent()
 
 	testServer := mocks.NewUmbrellaTestServer(true, 0)
-	defer testServer.Close()
+	defer testServer.Server.Close()
 
-	umbrellaAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", apiKey, http.DefaultClient)
+	umbrellaAPI, err := NewUmbrellaAPI(testServer.Server.URL+"/content/suggest", apiKey, http.DefaultClient)
 	assert.NoError(t, err)
 
 	suggestions, err := umbrellaAPI.FetchSuggestions(context.Background(), mockDraftContent)
@@ -53,9 +53,9 @@ func TestUmbrellaAPI_FetchSuggestions(t *testing.T) {
 func TestUmbrellaAPI_FetchDraftContentFailure(t *testing.T) {
 
 	testServer := mocks.NewUmbrellaTestServer(true, 0)
-	testServer.Close()
+	testServer.Server.Close()
 
-	contentAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", apiKey, http.DefaultClient)
+	contentAPI, err := NewUmbrellaAPI(testServer.Server.URL+"/content/suggest", apiKey, http.DefaultClient)
 	assert.NoError(t, err)
 
 	suggestions, err := contentAPI.FetchSuggestions(context.Background(), newMockDraftContent())

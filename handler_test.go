@@ -19,11 +19,11 @@ func TestRequestHandlerSuccess(t *testing.T) {
 	draftContentTestServer := mocks.NewDraftContentTestServer(true, 0)
 	umbrellaTestServer := mocks.NewUmbrellaTestServer(true, 0)
 
-	defer draftContentTestServer.Close()
-	defer umbrellaTestServer.Close()
+	defer draftContentTestServer.Server.Close()
+	defer umbrellaTestServer.Server.Close()
 
-	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.URL+"/drafts/content", draftContentTestServer.URL+"/__gtg", http.DefaultClient)
-	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.URL, "12345", http.DefaultClient)
+	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.Server.URL+"/drafts/content", draftContentTestServer.Server.URL+"/__gtg", http.DefaultClient)
+	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.Server.URL, "12345", http.DefaultClient)
 
 	requestHandler := requestHandler{contentAPI, umbrellaAPI, 8 * time.Second}
 
@@ -43,13 +43,15 @@ func TestRequestHandlerSuccess(t *testing.T) {
 
 func TestRequestHandlerDraftContentSLATimeout(t *testing.T) {
 	draftContentTestServer := mocks.NewDraftContentTestServer(true, 200*time.Millisecond)
-	umbrellaTestServer := mocks.NewUmbrellaTestServer(true, 200*time.Millisecond)
+	umbrellaTestServer := mocks.NewUmbrellaTestServer(true, 0)
 
-	defer draftContentTestServer.Close()
-	defer umbrellaTestServer.Close()
+	draftContentTestServer.On("EndpointCalled")
 
-	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.URL+"/drafts/content", draftContentTestServer.URL+"/__gtg", fthttp.NewClientWithDefaultTimeout("", ""))
-	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.URL, "12345", http.DefaultClient)
+	defer draftContentTestServer.Server.Close()
+	defer umbrellaTestServer.Server.Close()
+
+	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.Server.URL+"/drafts/content", draftContentTestServer.Server.URL+"/__gtg", fthttp.NewClientWithDefaultTimeout("", ""))
+	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.Server.URL+"/content/suggest", "12345", http.DefaultClient)
 
 	requestHandler := requestHandler{contentAPI, umbrellaAPI, 100 * time.Millisecond}
 
@@ -65,17 +67,22 @@ func TestRequestHandlerDraftContentSLATimeout(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusGatewayTimeout, resp.StatusCode)
+	assert.True(t, umbrellaTestServer.AssertNotCalled(t, "EndpointCalled"))
+	draftContentTestServer.AssertExpectations(t)
 
 }
 func TestRequestHandlerUmbrellaApiSLATimeout(t *testing.T) {
-	draftContentTestServer := mocks.NewDraftContentTestServer(true, 10*time.Millisecond)
-	umbrellaTestServer := mocks.NewUmbrellaTestServer(true, 200*time.Millisecond)
+	draftContentTestServer := mocks.NewDraftContentTestServer(true, 0*time.Millisecond)
+	umbrellaTestServer := mocks.NewUmbrellaTestServer(true, 1000*time.Millisecond)
 
-	defer draftContentTestServer.Close()
-	defer umbrellaTestServer.Close()
+	draftContentTestServer.On("EndpointCalled")
+	umbrellaTestServer.On("EndpointCalled")
 
-	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.URL+"/drafts/content", draftContentTestServer.URL+"/__gtg", fthttp.NewClientWithDefaultTimeout("", ""))
-	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.URL, "12345", http.DefaultClient)
+	defer draftContentTestServer.Server.Close()
+	defer umbrellaTestServer.Server.Close()
+
+	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.Server.URL+"/drafts/content", draftContentTestServer.Server.URL+"/__gtg", fthttp.NewClientWithDefaultTimeout("", ""))
+	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.Server.URL+"/content/suggest", "12345", fthttp.NewClientWithDefaultTimeout("", ""))
 
 	requestHandler := requestHandler{contentAPI, umbrellaAPI, 100 * time.Millisecond}
 
@@ -91,5 +98,6 @@ func TestRequestHandlerUmbrellaApiSLATimeout(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusGatewayTimeout, resp.StatusCode)
-
+	assert.True(t, draftContentTestServer.AssertNotCalled(t, "EndpointCalled"))
+	umbrellaTestServer.AssertExpectations(t)
 }
