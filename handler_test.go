@@ -12,6 +12,7 @@ import (
 	"github.com/Financial-Times/go-ft-http/fthttp"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestRequestHandlerSuccess(t *testing.T) {
@@ -67,12 +68,11 @@ func TestRequestHandlerDraftContentSLATimeout(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusGatewayTimeout, resp.StatusCode)
-	assert.True(t, umbrellaTestServer.AssertNotCalled(t, "EndpointCalled"))
-	draftContentTestServer.AssertExpectations(t)
 
+	mock.AssertExpectationsForObjects(t, draftContentTestServer, umbrellaTestServer)
 }
 func TestRequestHandlerUmbrellaApiSLATimeout(t *testing.T) {
-	draftContentTestServer := mocks.NewDraftContentTestServer(true, 0*time.Millisecond)
+	draftContentTestServer := mocks.NewDraftContentTestServer(true, 10*time.Millisecond)
 	umbrellaTestServer := mocks.NewUmbrellaTestServer(true, 1000*time.Millisecond)
 
 	draftContentTestServer.On("EndpointCalled")
@@ -98,6 +98,6 @@ func TestRequestHandlerUmbrellaApiSLATimeout(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusGatewayTimeout, resp.StatusCode)
-	assert.True(t, draftContentTestServer.AssertNotCalled(t, "EndpointCalled"))
-	umbrellaTestServer.AssertExpectations(t)
+
+	mock.AssertExpectationsForObjects(t, umbrellaTestServer, draftContentTestServer)
 }
