@@ -21,7 +21,7 @@ func TestRequestHandlerSuccess(t *testing.T) {
 	defer umbrellaTestServer.Close()
 
 	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.URL+"/drafts/content", draftContentTestServer.URL+"/__gtg", http.DefaultClient)
-	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.URL, "12345", http.DefaultClient)
+	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.URL, umbrellaTestServer.URL+"/__gtg", "12345", http.DefaultClient)
 
 	requestHandler := requestHandler{contentAPI, umbrellaAPI}
 
@@ -31,7 +31,6 @@ func TestRequestHandlerSuccess(t *testing.T) {
 
 	defer ts.Close()
 
-	//resp, err := http.Get(ts.URL + "/drafts/content/" + mocks.ValidMockContentUUID + "/suggestions")
 	resp, err := http.Get(ts.URL + "/drafts/content/" + mocks.ValidMockContentUUID + "/suggestions")
 
 	defer resp.Body.Close()
