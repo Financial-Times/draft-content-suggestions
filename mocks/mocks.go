@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/mock"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -88,11 +89,12 @@ const MockDraftContent = `
    }
 }`
 
-func NewDraftContentTestServer(healthy bool, inducedDelay time.Duration) *httptest.Server {
-
+func NewDraftContentTestServer(healthy bool, inducedDelay time.Duration) *MockServer {
+	m := &MockServer{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		if inducedDelay > 0 {
+			m.EndpointCalled()
 			time.Sleep(inducedDelay)
 		}
 
@@ -113,14 +115,16 @@ func NewDraftContentTestServer(healthy bool, inducedDelay time.Duration) *httpte
 		}
 	}))
 
-	return server
+	m.Server = server
+	return m
 }
 
-func NewUmbrellaTestServer(healthy bool, inducedDelay time.Duration) *httptest.Server {
-
+func NewUmbrellaTestServer(healthy bool, inducedDelay time.Duration) *MockServer {
+	m := &MockServer{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		if inducedDelay > 0 {
+			m.EndpointCalled()
 			time.Sleep(inducedDelay)
 		}
 
@@ -161,6 +165,15 @@ func NewUmbrellaTestServer(healthy bool, inducedDelay time.Duration) *httptest.S
 			w.WriteHeader(http.StatusOK)
 		}
 	}))
+	m.Server = server
+	return m
+}
 
-	return server
+type MockServer struct {
+	mock.Mock
+	Server *httptest.Server
+}
+
+func (m *MockServer) EndpointCalled() {
+	m.Called()
 }
