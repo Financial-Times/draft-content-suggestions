@@ -82,6 +82,12 @@ func main() {
 		Desc:   "Endpoint for Suggestions Umbrella",
 		EnvVar: "SUGGESTIONS_ENDPOINT",
 	})
+	suggestionsGtgEndpoint := app.String(cli.StringOpt{
+		Name:   "suggestions-umbrella-gtg-endpoint",
+		Value:  "http://test.api.ft.com/content/suggest/__gtg",
+		Desc:   "Endpoint for Suggestions Umbrella",
+		EnvVar: "SUGGESTIONS_GTG_ENDPOINT",
+	})
 
 	suggestionsAPIKey := app.String(cli.StringOpt{
 		Name:   "suggestions-api-key",
@@ -96,7 +102,7 @@ func main() {
 
 	client := fthttp.NewClient(time.Duration(*appTimeout)*time.Millisecond, "PAC", *appSystemCode)
 
-	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsAPIKey, client)
+	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsGtgEndpoint, *suggestionsAPIKey, client)
 
 	if err != nil {
 		log.WithError(err).Error("Suggestions Umbrella API error, exiting ...")

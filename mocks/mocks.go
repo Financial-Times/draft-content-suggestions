@@ -129,7 +129,8 @@ func NewUmbrellaTestServer(healthy bool, inducedDelay time.Duration) *httptest.S
 			return
 		}
 
-		if r.URL.Path == "/content/suggest" {
+		switch r.URL.Path {
+		case "/content/suggest":
 			if !healthy {
 				w.WriteHeader(http.StatusServiceUnavailable)
 				return
@@ -152,6 +153,12 @@ func NewUmbrellaTestServer(healthy bool, inducedDelay time.Duration) *httptest.S
 
 			w.WriteHeader(200)
 			w.Write([]byte(MockSuggestions))
+		case "/content/suggest/__gtg":
+			if !healthy {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
 		}
 	}))
 
