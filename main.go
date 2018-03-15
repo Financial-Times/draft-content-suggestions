@@ -48,9 +48,9 @@ func main() {
 		EnvVar: "APP_PORT",
 	})
 
-	appTimeout := app.Int(cli.IntOpt{
+	appTimeout := app.String(cli.StringOpt{
 		Name:   "app-timeout",
-		Value:  8000,
+		Value:  "8s",
 		Desc:   "Draft Content Suggestions Response Timeout",
 		EnvVar: "APP_TIMEOUT",
 	})
@@ -94,7 +94,14 @@ func main() {
 	log.SetLevel(log.InfoLevel)
 	log.Infof("[Startup] draft-content-suggestions is starting ")
 
-	client := fthttp.NewClient(time.Duration(*appTimeout)*time.Millisecond, "PAC", *appSystemCode)
+	timeoutDuration, err := time.ParseDuration(*appTimeout)
+
+	if err != nil {
+		log.WithError(err).Error("Configured timeout value is invalid")
+		return
+	}
+
+	client := fthttp.NewClient(timeoutDuration, "PAC", *appSystemCode)
 
 	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsAPIKey, client)
 
@@ -114,7 +121,7 @@ func main() {
 		log.Infof("System code: %s, App Name: %s, Port: %s", *appSystemCode, *appName, *port)
 
 		go func() {
-			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, time.Duration(*appTimeout) * time.Millisecond})
+			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, timeoutDuration})
 		}()
 
 		waitForSignal()
