@@ -31,9 +31,10 @@ Download the source code, dependencies and test dependencies:
 
 Options:
 
-        --app-system-code="draft-content-suggestions"            System Code of the application ($APP_SYSTEM_CODE)
-        --app-name="Annotation Suggestions API"                   Application name ($APP_NAME)
-        --port="8080"                                           Port to listen on ($APP_PORT)
+        --app-system-code="draft-content-suggestions" System Code of the application ($APP_SYSTEM_CODE)
+        --app-name="Annotation Suggestions API" Application name ($APP_NAME)
+        --app-timeout="8s" Draft Content Suggestions Response Timeout ($APP_TIMEOUT)
+        --port="8080" Port to listen on ($APP_PORT)
         --draft-content-endpoint="http://localhost:9000/drafts/content" Draft Content Service
         --draft-content-gtg-endpoint="http://localhost:9000/__gtg" Draft Content Health Service
         --suggestions-umbrella-endpoint="http://test.api.ft.com/content/suggest" Suggestions Umbrella Service
