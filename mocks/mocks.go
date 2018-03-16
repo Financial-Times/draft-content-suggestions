@@ -2,9 +2,11 @@ package mocks
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/mock"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
 const ValidMockContentUUID = "6f14ea94-690f-3ed4-98c7-b926683c735a"
@@ -87,9 +89,15 @@ const MockDraftContent = `
    }
 }`
 
-func NewDraftContentTestServer(healthy bool) *httptest.Server {
-
+func NewDraftContentTestServer(healthy bool, inducedDelay time.Duration) *MockServer {
+	m := &MockServer{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if inducedDelay > 0 {
+			m.EndpointCalled()
+			time.Sleep(inducedDelay)
+		}
+
 		switch r.URL.Path {
 		case "/drafts/content/" + ValidMockContentUUID:
 			w.WriteHeader(200)
@@ -107,12 +115,18 @@ func NewDraftContentTestServer(healthy bool) *httptest.Server {
 		}
 	}))
 
-	return server
+	m.Server = server
+	return m
 }
 
-func NewUmbrellaTestServer(healthy bool) *httptest.Server {
-
+func NewUmbrellaTestServer(healthy bool, inducedDelay time.Duration) *MockServer {
+	m := &MockServer{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if inducedDelay > 0 {
+			m.EndpointCalled()
+			time.Sleep(inducedDelay)
+		}
 
 		if r.Header.Get("X-Api-Key") == "" {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -144,6 +158,15 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 			w.Write([]byte(MockSuggestions))
 		}
 	}))
+	m.Server = server
+	return m
+}
 
-	return server
+type MockServer struct {
+	mock.Mock
+	Server *httptest.Server
+}
+
+func (m *MockServer) EndpointCalled() {
+	m.Called()
 }

@@ -33,6 +33,11 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Chart.Version }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
+        - name: APP_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: timeout-config
+              key: draft-content-suggestions-timeout
         - name: SUGGESTIONS_ENDPOINT
           valueFrom:
             configMapKeyRef:

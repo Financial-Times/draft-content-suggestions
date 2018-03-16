@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/Financial-Times/api-endpoint"
-	"github.com/Financial-Times/draft-content-suggestions/commons"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/health"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
+	"github.com/Financial-Times/go-ft-http/fthttp"
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
@@ -46,6 +46,13 @@ func main() {
 		Value:  "8080",
 		Desc:   "Port to listen on",
 		EnvVar: "APP_PORT",
+	})
+
+	appTimeout := app.String(cli.StringOpt{
+		Name:   "app-timeout",
+		Value:  "8s",
+		Desc:   "Draft Content Suggestions Response Timeout",
+		EnvVar: "APP_TIMEOUT",
 	})
 
 	apiYml := app.String(cli.StringOpt{
@@ -87,7 +94,14 @@ func main() {
 	log.SetLevel(log.InfoLevel)
 	log.Infof("[Startup] draft-content-suggestions is starting ")
 
-	client := commons.NewFTHttpClient("PAC", *appSystemCode, 10*time.Second)
+	timeoutDuration, err := time.ParseDuration(*appTimeout)
+
+	if err != nil {
+		log.WithError(err).Error("Configured timeout value is invalid")
+		return
+	}
+
+	client := fthttp.NewClient(timeoutDuration, "PAC", *appSystemCode)
 
 	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsAPIKey, client)
 
@@ -107,7 +121,7 @@ func main() {
 		log.Infof("System code: %s, App Name: %s, Port: %s", *appSystemCode, *appName, *port)
 
 		go func() {
-			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI})
+			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, timeoutDuration})
 		}()
 
 		waitForSignal()

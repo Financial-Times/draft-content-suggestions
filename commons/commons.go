@@ -9,10 +9,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/Financial-Times/go-ft-http-transport/transport"
 	tidutils "github.com/Financial-Times/transactionid-utils-go"
 	"github.com/satori/go.uuid"
-	"time"
 )
 
 // Common type/behaviour definition for an endpoint
@@ -68,10 +66,4 @@ func ValidateEndpoint(endpoint string) error {
 func ValidateUUID(u string) error {
 	_, err := uuid.FromString(u)
 	return err
-}
-
-// NewFTHttpClient provides a FT compliant http client.
-func NewFTHttpClient(platform string, systemCode string, timeout time.Duration) *http.Client {
-	delegatingTransport := transport.NewTransport().WithStandardUserAgent(platform, systemCode)
-	return &http.Client{Timeout: timeout, Transport: delegatingTransport}
 }
