@@ -1,5 +1,8 @@
 version: "1.0.0"
 fixtures:
+  /content/suggest/__gtg:
+    get:
+      status: 200
   /content/suggest:
     post:
       body:
