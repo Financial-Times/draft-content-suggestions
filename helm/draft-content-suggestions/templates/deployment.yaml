@@ -38,6 +38,11 @@ spec:
             configMapKeyRef:
               name: global-config
               key: upp-suggestions-umbrella-endpoint
+        - name: SUGGESTIONS_GTG_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: upp-suggestions-umbrella-gtg-endpoint
         - name: SUGGESTIONS_API_KEY
           valueFrom:
             secretKeyRef:
