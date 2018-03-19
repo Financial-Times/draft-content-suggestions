@@ -3,19 +3,17 @@ package suggestions
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/Financial-Times/draft-content-suggestions/commons"
-	"github.com/satori/go.uuid"
 )
 
-func NewUmbrellaAPI(endpoint string, apiKey string, httpClient *http.Client) (UmbrellaAPI, error) {
+func NewUmbrellaAPI(endpoint string, gtgEndpoint string, apiKey string, httpClient *http.Client) (UmbrellaAPI, error) {
 
-	umbrellaAPI := &umbrellaAPI{endpoint, apiKey, httpClient}
+	umbrellaAPI := &umbrellaAPI{endpoint, gtgEndpoint, apiKey, httpClient}
 
 	err := umbrellaAPI.IsValid()
 
@@ -37,9 +35,10 @@ type UmbrellaAPI interface {
 }
 
 type umbrellaAPI struct {
-	endpoint   string
-	apiKey     string
-	httpClient *http.Client
+	endpoint    string
+	gtgEndpoint string
+	apiKey      string
+	httpClient  *http.Client
 }
 
 func (u *umbrellaAPI) FetchSuggestions(ctx context.Context, content []byte) (suggestion []byte, err error) {
@@ -79,16 +78,24 @@ func (u *umbrellaAPI) Endpoint() string {
 }
 
 func (u *umbrellaAPI) IsGTG(ctx context.Context) (string, error) {
-	newUUID := uuid.NewV4()
 
-	c := make(map[string]interface{})
-	c["uuid"] = newUUID.String()
-	content, err := json.Marshal(c)
-
-	_, err = u.FetchSuggestions(ctx, content)
+	gtgReq, err := http.NewRequest(http.MethodGet, u.gtgEndpoint, nil)
+	gtgReq.Header.Set("X-Api-Key", u.apiKey)
 
 	if err != nil {
 		return "", err
+	}
+
+	response, err := u.httpClient.Do(gtgReq.WithContext(ctx))
+
+	if err != nil {
+		return "", err
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return "", errors.New("suggestions umbrella service is unhealthy")
 	}
 
 	return "suggestions umbrella service is healthy", nil

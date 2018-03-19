@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/Financial-Times/api-endpoint"
-	"github.com/Financial-Times/draft-content-suggestions/commons"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/health"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
+	"github.com/Financial-Times/go-ft-http/fthttp"
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
@@ -48,6 +48,13 @@ func main() {
 		EnvVar: "APP_PORT",
 	})
 
+	appTimeout := app.Int(cli.IntOpt{
+		Name:   "app-timeout",
+		Value:  8000,
+		Desc:   "Draft Content Suggestions Response Timeout",
+		EnvVar: "APP_TIMEOUT",
+	})
+
 	apiYml := app.String(cli.StringOpt{
 		Name:   "api-yml",
 		Value:  "./api.yml",
@@ -75,6 +82,12 @@ func main() {
 		Desc:   "Endpoint for Suggestions Umbrella",
 		EnvVar: "SUGGESTIONS_ENDPOINT",
 	})
+	suggestionsGtgEndpoint := app.String(cli.StringOpt{
+		Name:   "suggestions-umbrella-gtg-endpoint",
+		Value:  "http://test.api.ft.com/content/suggest/__gtg",
+		Desc:   "Endpoint for Suggestions Umbrella",
+		EnvVar: "SUGGESTIONS_GTG_ENDPOINT",
+	})
 
 	suggestionsAPIKey := app.String(cli.StringOpt{
 		Name:   "suggestions-api-key",
@@ -87,9 +100,9 @@ func main() {
 	log.SetLevel(log.InfoLevel)
 	log.Infof("[Startup] draft-content-suggestions is starting ")
 
-	client := commons.NewFTHttpClient("PAC", *appSystemCode, 10*time.Second)
+	client := fthttp.NewClient(time.Duration(*appTimeout)*time.Millisecond, "PAC", *appSystemCode)
 
-	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsAPIKey, client)
+	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsGtgEndpoint, *suggestionsAPIKey, client)
 
 	if err != nil {
 		log.WithError(err).Error("Suggestions Umbrella API error, exiting ...")
@@ -107,7 +120,7 @@ func main() {
 		log.Infof("System code: %s, App Name: %s, Port: %s", *appSystemCode, *appName, *port)
 
 		go func() {
-			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI})
+			serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, time.Duration(*appTimeout) * time.Millisecond})
 		}()
 
 		waitForSignal()

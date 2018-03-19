@@ -11,10 +11,10 @@ import (
 
 func TestDraftContentAPI_IsHealthySuccess(t *testing.T) {
 
-	testServer := mocks.NewDraftContentTestServer(true)
-	defer testServer.Close()
+	testServer := mocks.NewDraftContentTestServer(true, 0)
+	defer testServer.Server.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__health", http.DefaultClient)
+	contentAPI, err := NewContentAPI(testServer.Server.URL+"/drafts/content", testServer.Server.URL+"/__health", http.DefaultClient)
 
 	assert.NoError(t, err)
 
@@ -22,10 +22,10 @@ func TestDraftContentAPI_IsHealthySuccess(t *testing.T) {
 	assert.NoError(t, err)
 }
 func TestDraftContentAPI_IsHealthyFailure(t *testing.T) {
-	testServer := mocks.NewDraftContentTestServer(false)
-	defer testServer.Close()
+	testServer := mocks.NewDraftContentTestServer(false, 0)
+	defer testServer.Server.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient)
+	contentAPI, err := NewContentAPI(testServer.Server.URL+"/drafts/content", testServer.Server.URL+"/__gtg", http.DefaultClient)
 
 	assert.NoError(t, err)
 
@@ -34,10 +34,10 @@ func TestDraftContentAPI_IsHealthyFailure(t *testing.T) {
 }
 func TestDraftContentAPI_FetchDraftContentSuccess(t *testing.T) {
 
-	testServer := mocks.NewDraftContentTestServer(true)
-	defer testServer.Close()
+	testServer := mocks.NewDraftContentTestServer(true, 0)
+	defer testServer.Server.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient)
+	contentAPI, err := NewContentAPI(testServer.Server.URL+"/drafts/content", testServer.Server.URL+"/__gtg", http.DefaultClient)
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.ValidMockContentUUID)
@@ -48,10 +48,10 @@ func TestDraftContentAPI_FetchDraftContentSuccess(t *testing.T) {
 }
 func TestDraftContentAPI_FetchDraftContentMissing(t *testing.T) {
 
-	testServer := mocks.NewDraftContentTestServer(true)
-	defer testServer.Close()
+	testServer := mocks.NewDraftContentTestServer(true, 0)
+	defer testServer.Server.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient)
+	contentAPI, err := NewContentAPI(testServer.Server.URL+"/drafts/content", testServer.Server.URL+"/__gtg", http.DefaultClient)
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.MissingMockContentUUID)
@@ -61,10 +61,10 @@ func TestDraftContentAPI_FetchDraftContentMissing(t *testing.T) {
 }
 func TestDraftContentAPI_FetchDraftContentFailure(t *testing.T) {
 
-	testServer := mocks.NewDraftContentTestServer(true)
-	testServer.Close()
+	testServer := mocks.NewDraftContentTestServer(true, 0)
+	testServer.Server.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient)
+	contentAPI, err := NewContentAPI(testServer.Server.URL+"/drafts/content", testServer.Server.URL+"/__gtg", http.DefaultClient)
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.ValidMockContentUUID)
