@@ -6,7 +6,7 @@ jobs:
       - image: circleci/golang:1.10
         environment:
           GOPATH: /go
-          CIRCLE_TEST_REPORTS: /tmp/test-results/golang
+          CIRCLE_TEST_REPORTS: /tmp/test-results
           CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
     steps:
       - checkout
@@ -15,7 +15,7 @@ jobs:
           command: |
             go get -u github.com/mattn/goveralls
             go get -u github.com/jstemmer/go-junit-report
-            go get -u github.com/golang/dep/cmd/dep
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
       - run:
           name: Make result folders
           command: |
@@ -64,7 +64,7 @@ jobs:
       - run:
           name: External Dependencies
           command: |
-            go get -u github.com/golang/dep/cmd/dep
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
       - run:
           name: Download vendored dependancies
           command: dep ensure -v -vendor-only
