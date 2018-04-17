@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Financial-Times/api-endpoint"
-	"github.com/Financial-Times/draft-content-suggestions/commons"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/health"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
@@ -20,6 +19,7 @@ import (
 	"github.com/jawher/mow.cli"
 	"github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
+	"github.com/Financial-Times/go-ft-http/fthttp"
 )
 
 const appDescription = "Provides suggestions for draft content."
@@ -93,9 +93,18 @@ func main() {
 	log.SetLevel(log.InfoLevel)
 	log.Infof("[Startup] draft-content-suggestions is starting ")
 
-	client := commons.NewFTHttpClient("PAC", *appSystemCode, 10*time.Second)
+	client := fthttp.NewClientBuilder().
+		WithTimeout(10 * time.Second).
+		WithSysInfo("PAC", *appSystemCode).
+		Build()
 
-	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsGtgEndpoint, *suggestionsAPIKey, client)
+	umbrellaClient := fthttp.NewClientBuilder().
+		WithTimeout(10 * time.Second).
+		WithSysInfo("PAC", *appSystemCode).
+		WithLogging(log.StandardLogger()).
+		Build()
+
+	umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsGtgEndpoint, *suggestionsAPIKey, umbrellaClient)
 
 	if err != nil {
 		log.WithError(err).Error("Suggestions Umbrella API error, exiting ...")
