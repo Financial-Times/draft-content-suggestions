@@ -30,7 +30,7 @@ jobs:
       - run:
           name: Run Tests
           command: |
-            go test -race -cover -coverprofile=$CIRCLE_COVERAGE_REPORT/coverage.out | go-junit-report > $CIRCLE_TEST_REPORTS/junit.xml
+            go test -race -cover -coverprofile=$CIRCLE_COVERAGE_REPORT/coverage.out ./... | go-junit-report > $CIRCLE_TEST_REPORTS/junit.xml
       - run:
           name: Upload coverage
           command: goveralls -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
