@@ -10,19 +10,18 @@ from Draft Content service and querying Suggestions Umbrella service.
 
 Download the source code, dependencies and test dependencies:
 
-        go get -u github.com/kardianos/govendor
+        curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         cd $GOPATH/src/
         git clone github.com:Financial-Times/draft-content-suggestions
         cd github.com/Financial-Times/draft-content-suggestions
-        govendor sync
+        dep ensure -vendor-only
         go build .
 
 ## Running locally
 
 1. Run the tests and install the binary:
 
-        govendor sync
-        govendor test -v -race
+        go test ./...
         go install
 
 2. Run the binary (using the `help` flag to see the available optional arguments):
