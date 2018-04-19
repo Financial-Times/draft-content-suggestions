@@ -12,7 +12,7 @@ metadata:
     ingress.kubernetes.io/rewrite-target: /drafts/content
 spec:
   rules:
-    - host: "*.ft.com"
+    - host: {{ template "cluster_subdomain" . }}.ft.com
       http:
         paths:
         - path: /drafts/content/.*/suggestions
