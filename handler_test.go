@@ -13,7 +13,46 @@ import (
 )
 
 func TestRequestHandlerSuccess(t *testing.T) {
+	resp, err := handleTestRequest("/drafts/content/" + mocks.ValidMockContentUUID + "/suggestions")
 
+	defer resp.Body.Close()
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestRequestHandlerContentNotFound(t *testing.T) {
+	resp, err := handleTestRequest("/drafts/content/" + mocks.MissingMockContentUUID + "/suggestions")
+
+	defer resp.Body.Close()
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestRequestHandlerContentNotMappable(t *testing.T) {
+
+	resp, err := handleTestRequest("/drafts/content/" + mocks.UnprocessableContentUUID + "/suggestions")
+
+	defer resp.Body.Close()
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+func TestRequestHandlerContentInvalidUUID(t *testing.T) {
+
+	resp, err := handleTestRequest("/drafts/content/invaliduuid/suggestions")
+
+	defer resp.Body.Close()
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+
+
+func handleTestRequest(urlpath string) (resp *http.Response, err error) {
 	draftContentTestServer := mocks.NewDraftContentTestServer(true)
 	umbrellaTestServer := mocks.NewUmbrellaTestServer(true)
 
@@ -31,10 +70,6 @@ func TestRequestHandlerSuccess(t *testing.T) {
 
 	defer ts.Close()
 
-	resp, err := http.Get(ts.URL + "/drafts/content/" + mocks.ValidMockContentUUID + "/suggestions")
+	return http.Get(ts.URL + urlpath)
 
-	defer resp.Body.Close()
-
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

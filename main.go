@@ -12,6 +12,7 @@ import (
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/health"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
+	"github.com/Financial-Times/go-ft-http/fthttp"
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
@@ -19,7 +20,6 @@ import (
 	"github.com/jawher/mow.cli"
 	"github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
-	"github.com/Financial-Times/go-ft-http/fthttp"
 )
 
 const appDescription = "Provides suggestions for draft content."
@@ -94,12 +94,12 @@ func main() {
 	log.Infof("[Startup] draft-content-suggestions is starting ")
 
 	client := fthttp.NewClientBuilder().
-		WithTimeout(10 * time.Second).
+		WithTimeout(10*time.Second).
 		WithSysInfo("PAC", *appSystemCode).
 		Build()
 
 	umbrellaClient := fthttp.NewClientBuilder().
-		WithTimeout(10 * time.Second).
+		WithTimeout(10*time.Second).
 		WithSysInfo("PAC", *appSystemCode).
 		WithLogging(log.StandardLogger()).
 		Build()
