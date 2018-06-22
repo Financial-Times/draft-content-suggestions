@@ -50,8 +50,6 @@ func TestRequestHandlerContentInvalidUUID(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
-
-
 func handleTestRequest(urlpath string) (resp *http.Response, err error) {
 	draftContentTestServer := mocks.NewDraftContentTestServer(true)
 	umbrellaTestServer := mocks.NewUmbrellaTestServer(true)

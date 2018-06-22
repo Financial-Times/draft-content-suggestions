@@ -9,7 +9,7 @@ import (
 
 const ValidMockContentUUID = "6f14ea94-690f-3ed4-98c7-b926683c735a"
 
-const InvalidMockContentUUID = "9d5e441e-0b02-11e8-1234-42f857ea9f1"
+const FailsRetrivalContentUuid = "7597bf73-4420-4194-98ef-4e5b1e8267e9"
 
 const MissingMockContentUUID = "711e5bc1-3470-4297-ae26-154f145a6287"
 
@@ -102,6 +102,8 @@ func NewDraftContentTestServer(healthy bool) *httptest.Server {
 			w.WriteHeader(404)
 		case "/drafts/content/" + UnprocessableContentUUID:
 			w.WriteHeader(422)
+		case "/drafts/content/" + FailsRetrivalContentUuid:
+			w.WriteHeader(500)
 		case "/__gtg":
 			fallthrough
 		case "__gtg":

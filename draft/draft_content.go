@@ -6,14 +6,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"fmt"
 
 	"github.com/Financial-Times/draft-content-suggestions/commons"
 )
 
 
 var (
-	ErrDraftNotMappable = errors.New("draft content is invalid for mapping status 422")
-	ErrRetrievingContent=errors.New("error in draft content retrival status non-200")
+	ErrDraftNotMappable = errors.New("draft content is invalid for mapping status=422")
 	)
 
 func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Client) (contentAPI ContentAPI, err error) {
@@ -76,7 +76,7 @@ func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([
 	}
 
 	if response.StatusCode!=http.StatusOK{
-		return nil, ErrRetrievingContent
+		return nil, fmt.Errorf("error in draft content retrival status=%v" ,response.StatusCode)
 	}
 
 	bytes, err := ioutil.ReadAll(response.Body)
