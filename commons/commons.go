@@ -34,8 +34,8 @@ type message struct {
 
 // WriteJSONMessage writes the msg provided as encoded json with the proper content type header added.
 func WriteJSONMessage(w http.ResponseWriter, status int, msg string) error {
-	w.WriteHeader(status)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(status)
 
 	enc := json.NewEncoder(w)
 	return enc.Encode(&message{Message: msg})
