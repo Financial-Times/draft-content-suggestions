@@ -33,8 +33,8 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	content, err := rh.dca.FetchDraftContent(ctx, uuid)
 
 	if err != nil {
-		log.WithError(err).WithField("uuid", uuid).Error("Draft content api access has failed.")
-		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, "Draft content api access has failed.")
+		log.WithError(err).WithField("uuid", uuid).Error("Draft content api retrieval has failed.")
+		commons.WriteJSONMessage(writer, http.StatusInternalServerError, "Draft content api retrieval has failed.")
 		return
 	}
 

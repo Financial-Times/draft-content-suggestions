@@ -61,14 +61,43 @@ func TestDraftContentAPI_FetchDraftContentMissing(t *testing.T) {
 }
 func TestDraftContentAPI_FetchDraftContentFailure(t *testing.T) {
 
-	testServer := mocks.NewDraftContentTestServer(true)
-	testServer.Close()
-
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient)
+	contentAPI, err := NewContentAPI("http://localhost/drafts/content", "http://localhost/__gtg", http.DefaultClient)
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.ValidMockContentUUID)
 
 	assert.Error(t, err)
+	assert.True(t, content == nil)
+}
+
+
+func TestDraftContentAPI_FetchDraftContentUnmappable(t *testing.T) {
+
+	testServer := mocks.NewDraftContentTestServer(false)
+	defer testServer.Close()
+
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient)
+	assert.NoError(t, err)
+
+	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.UnprocessableContentUUID)
+
+	assert.Error(t, err)
+	assert.EqualError(t, ErrDraftNotMappable,"draft content is invalid for mapping status=422")
+	assert.True(t, content == nil)
+}
+
+
+func TestDraftContentAPI_FetchDraftContentNon200(t *testing.T) {
+
+	testServer := mocks.NewDraftContentTestServer(true)
+	defer testServer.Close()
+
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient)
+	assert.NoError(t, err)
+
+	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.FailsRetrivalContentUuid)
+
+	assert.Error(t, err)
+	assert.EqualError(t, err,"error in draft content retrival status=500")
 	assert.True(t, content == nil)
 }
