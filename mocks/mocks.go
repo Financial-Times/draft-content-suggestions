@@ -13,7 +13,7 @@ const FailsRetrivalContentUuid = "7597bf73-4420-4194-98ef-4e5b1e8267e9"
 
 const MissingMockContentUUID = "711e5bc1-3470-4297-ae26-154f145a6287"
 
-const UnprocessableContentUUID="910b60e8-13d8-4b51-871a-d29cf21eb583"
+const UnprocessableContentUUID = "910b60e8-13d8-4b51-871a-d29cf21eb583"
 
 const MockSuggestions = `{
     "suggestions": [
