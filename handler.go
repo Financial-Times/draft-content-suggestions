@@ -7,6 +7,7 @@ import (
 	"github.com/Financial-Times/draft-content-suggestions/commons"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
+	. "github.com/Financial-Times/transactionid-utils-go"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
@@ -19,11 +20,12 @@ type requestHandler struct {
 func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWriter, request *http.Request) {
 
 	uuid := mux.Vars(request)["uuid"]
+	logger := log.WithField(TransactionIDKey, GetTransactionIDFromRequest(request))
 
 	err := commons.ValidateUUID(uuid)
 
 	if err != nil {
-		log.WithError(err).WithField("uuid", uuid).Warn("Invalid UUID")
+		logger.WithError(err).Warn("Invalid UUID")
 		commons.WriteJSONMessage(writer, http.StatusBadRequest, "Invalid UUID")
 		return
 	}
@@ -33,12 +35,13 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	content, err := rh.dca.FetchDraftContent(ctx, uuid)
 
 	if err != nil {
-		log.WithError(err).WithField("uuid", uuid).Error("Draft content api retrieval has failed.")
+		log.WithError(err).Error("Draft content api retrieval has failed.")
 		commons.WriteJSONMessage(writer, http.StatusInternalServerError, "Draft content api retrieval has failed.")
 		return
 	}
 
 	if content == nil {
+		log.Warn("No draft content found, cannot provide suggestions")
 		commons.WriteJSONMessage(writer, http.StatusNotFound, fmt.Sprintf("No draft content for uuid: %v", uuid))
 		return
 	}
@@ -46,7 +49,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	suggestion, err := rh.sua.FetchSuggestions(ctx, content)
 
 	if err != nil {
-		log.WithError(err).WithField("uuid", uuid).Error("Suggestions umbrella api access has failed")
+		log.WithError(err).Error("Suggestions umbrella api access has failed")
 		commons.WriteJSONMessage(writer, http.StatusServiceUnavailable, "Suggestions umbrella api access has failed")
 		return
 	}
@@ -57,7 +60,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	// could be related to intermittent/temporary network issues
 	// or original Tagme request is no more waiting for a response.
 	if err != nil {
-		log.WithError(err).WithField("uuid", uuid).Error("Failed responding to draft content suggestions request")
+		log.WithError(err).Error("Failed responding to draft content suggestions request")
 	}
 
 }
