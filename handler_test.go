@@ -37,7 +37,7 @@ func TestRequestHandlerContentNotMappable(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
 }
 
 func TestRequestHandlerContentInvalidUUID(t *testing.T) {

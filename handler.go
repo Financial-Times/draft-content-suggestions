@@ -20,7 +20,7 @@ type requestHandler struct {
 func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWriter, request *http.Request) {
 
 	uuid := mux.Vars(request)["uuid"]
-	logger := log.WithField(TransactionIDKey, GetTransactionIDFromRequest(request))
+	logger := log.WithField(TransactionIDKey, GetTransactionIDFromRequest(request)).WithField("uuid", uuid)
 
 	err := commons.ValidateUUID(uuid)
 
@@ -33,6 +33,12 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	ctx := commons.NewContextFromRequest(request)
 
 	content, err := rh.dca.FetchDraftContent(ctx, uuid)
+
+	if err == draft.ErrDraftNotMappable {
+		log.WithError(err).Info("Could not provide suggestions for content, as we are unable to map it")
+		commons.WriteJSONMessage(writer, http.StatusUnprocessableEntity, "Could not provide suggestions for content, as we are unable to map it")
+		return
+	}
 
 	if err != nil {
 		log.WithError(err).Error("Draft content api retrieval has failed.")
