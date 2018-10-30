@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Financial-Times/draft-content-suggestions/commons"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -95,23 +96,27 @@ func (d *draftContentAPI) IsGTG(ctx context.Context) (string, error) {
 	request, err := http.NewRequest(http.MethodGet, d.healthEndpoint, nil)
 
 	if err != nil {
+		log.WithError(err).WithField("healthEndpoint", d.healthEndpoint).Error("Error in creating GTG request to draft-content-public-read")
 		return "", err
 	}
 
 	response, err := d.httpClient.Do(request.WithContext(ctx))
 
 	if err != nil {
+		log.WithError(err).WithField("healthEndpoint", d.healthEndpoint).Error("Error in GTG request to draft-content-public-read")
 		return "", err
 	}
 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return "", errors.New("draft-content-api endpoint is unhealthy")
+		log.WithField("healthEndpoint", d.healthEndpoint).
+			WithField("status", response.StatusCode).
+			Error("GTG for draft-content-public-read returned a non-200 HTTP status")
+		return "", fmt.Errorf("GTG for draft-content-public-read returned a non-200 HTTP status: %v", response.StatusCode)
 	}
 
-	return "draft-content-api is healthy", nil
-
+	return "draft-content-public-read is healthy", nil
 }
 
 func (d *draftContentAPI) IsValid() error {

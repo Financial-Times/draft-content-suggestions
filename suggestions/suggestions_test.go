@@ -7,13 +7,15 @@ import (
 	"testing"
 
 	"github.com/Financial-Times/draft-content-suggestions/mocks"
+	log "github.com/sirupsen/logrus"
+	logTest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 )
 
 const apiKey = "12345"
 
-func TestUmbrellaAPI_IsHealthySuccess(t *testing.T) {
-
+func TestUmbrellaAPI_IsGTGSuccess(t *testing.T) {
+	hook := logTest.NewGlobal()
 	testServer := mocks.NewUmbrellaTestServer(true)
 	defer testServer.Close()
 
@@ -21,10 +23,14 @@ func TestUmbrellaAPI_IsHealthySuccess(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = umbrellaAPI.IsGTG(context.Background())
+	msg, err := umbrellaAPI.IsGTG(context.Background())
 	assert.NoError(t, err)
+	assert.Equal(t, "UPP suggestions API is healthy", msg)
+	assert.Empty(t, hook.Entries)
 }
-func TestUmbrellaAPI_IsHealthyFailure(t *testing.T) {
+
+func TestUmbrellaAPI_IsGTGFailure503(t *testing.T) {
+	hook := logTest.NewGlobal()
 	testServer := mocks.NewUmbrellaTestServer(false)
 	defer testServer.Close()
 
@@ -34,7 +40,52 @@ func TestUmbrellaAPI_IsHealthyFailure(t *testing.T) {
 
 	_, err = umbrellaAPI.IsGTG(context.Background())
 	assert.Error(t, err)
+	assert.Error(t, err)
+	assert.Len(t, hook.AllEntries(), 1)
+	assert.Equal(t, log.ErrorLevel, hook.LastEntry().Level)
+	assert.Equal(t, "GTG for UPP suggestions API returned a non-200 HTTP status", hook.LastEntry().Message)
+	assert.Equal(t, http.StatusServiceUnavailable, hook.LastEntry().Data["status"])
+	assert.Equal(t, testServer.URL+"/content/suggest/__gtg", hook.LastEntry().Data["healthEndpoint"])
 }
+
+func TestUmbrellaAPI_IsGTGFailureInvalidEndpoint(t *testing.T) {
+	hook := logTest.NewGlobal()
+	testServer := mocks.NewUmbrellaTestServer(false)
+	defer testServer.Close()
+
+	umbrellaAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", ":#", apiKey, http.DefaultClient)
+
+	assert.NoError(t, err)
+
+	_, err = umbrellaAPI.IsGTG(context.Background())
+	assert.Error(t, err)
+	assert.Error(t, err)
+	assert.Len(t, hook.AllEntries(), 1)
+	assert.Equal(t, log.ErrorLevel, hook.LastEntry().Level)
+	assert.Equal(t, "Error in creating GTG request to UPP suggestions API", hook.LastEntry().Message)
+	assert.Equal(t, ":#", hook.LastEntry().Data["healthEndpoint"])
+	assert.Equal(t, "parse :: missing protocol scheme", hook.LastEntry().Data["error"].(error).Error())
+}
+
+func TestUmbrellaAPI_IsGTGFailureRequestError(t *testing.T) {
+	hook := logTest.NewGlobal()
+	testServer := mocks.NewUmbrellaTestServer(false)
+	defer testServer.Close()
+
+	umbrellaAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", "__gtg", apiKey, http.DefaultClient)
+
+	assert.NoError(t, err)
+
+	_, err = umbrellaAPI.IsGTG(context.Background())
+	assert.Error(t, err)
+	assert.Error(t, err)
+	assert.Len(t, hook.AllEntries(), 1)
+	assert.Equal(t, log.ErrorLevel, hook.LastEntry().Level)
+	assert.Equal(t, "Error in GTG request to UPP suggestions API", hook.LastEntry().Message)
+	assert.Equal(t, "__gtg", hook.LastEntry().Data["healthEndpoint"])
+	assert.Equal(t, "Get __gtg: unsupported protocol scheme \"\"", hook.LastEntry().Data["error"].(error).Error())
+}
+
 func TestUmbrellaAPI_FetchSuggestions(t *testing.T) {
 
 	mockDraftContent := newMockDraftContent()
