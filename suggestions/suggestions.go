@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/Financial-Times/draft-content-suggestions/commons"
+	log "github.com/sirupsen/logrus"
 )
 
 func NewUmbrellaAPI(endpoint string, gtgEndpoint string, apiKey string, httpClient *http.Client) (UmbrellaAPI, error) {
@@ -80,25 +81,30 @@ func (u *umbrellaAPI) Endpoint() string {
 func (u *umbrellaAPI) IsGTG(ctx context.Context) (string, error) {
 
 	gtgReq, err := http.NewRequest(http.MethodGet, u.gtgEndpoint, nil)
-	gtgReq.Header.Set("X-Api-Key", u.apiKey)
 
 	if err != nil {
+		log.WithError(err).WithField("healthEndpoint", u.gtgEndpoint).Error("Error in creating GTG request to UPP suggestions API")
 		return "", err
 	}
+	gtgReq.Header.Set("X-Api-Key", u.apiKey)
 
 	response, err := u.httpClient.Do(gtgReq.WithContext(ctx))
 
 	if err != nil {
+		log.WithError(err).WithField("healthEndpoint", u.gtgEndpoint).Error("Error in GTG request to UPP suggestions API")
 		return "", err
 	}
 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return "", errors.New("suggestions umbrella service is unhealthy")
+		log.WithField("healthEndpoint", u.gtgEndpoint).
+			WithField("status", response.StatusCode).
+			Error("GTG for UPP suggestions API returned a non-200 HTTP status")
+		return "", fmt.Errorf("GTG for UPP suggestions API returned a non-200 HTTP status: %v", response.StatusCode)
 	}
 
-	return "suggestions umbrella service is healthy", nil
+	return "UPP suggestions API is healthy", nil
 }
 
 func (u *umbrellaAPI) IsValid() error {

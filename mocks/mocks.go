@@ -92,26 +92,29 @@ const MockDraftContent = `
 }`
 
 func NewDraftContentTestServer(healthy bool) *httptest.Server {
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
 		switch r.URL.Path {
 		case "/drafts/content/" + ValidMockContentUUID:
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(MockDraftContent))
 		case "/drafts/content/" + MissingMockContentUUID:
-			w.WriteHeader(404)
+			w.WriteHeader(http.StatusNotFound)
 		case "/drafts/content/" + UnprocessableContentUUID:
-			w.WriteHeader(422)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 		case "/drafts/content/" + FailsRetrivalContentUuid:
-			w.WriteHeader(500)
-		case "/__gtg":
-			fallthrough
-		case "__gtg":
+			w.WriteHeader(http.StatusInternalServerError)
+		case "/__gtg", "__gtg":
 			if healthy {
-				w.WriteHeader(200)
+				w.WriteHeader(http.StatusOK)
 			} else {
-				w.WriteHeader(503)
+				w.WriteHeader(http.StatusServiceUnavailable)
 			}
+		default:
+			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
 
@@ -130,7 +133,7 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 		switch r.URL.Path {
 		case "/content/suggest":
 			if !healthy {
-				w.WriteHeader(http.StatusServiceUnavailable)
+				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
@@ -153,7 +156,7 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 			w.Write([]byte(MockSuggestions))
 		case "/content/suggest/__gtg":
 			if !healthy {
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusServiceUnavailable)
 				return
 			}
 			w.WriteHeader(http.StatusOK)
