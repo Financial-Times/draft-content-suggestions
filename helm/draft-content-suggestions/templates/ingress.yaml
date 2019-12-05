@@ -19,3 +19,10 @@ spec:
           backend:
             serviceName: {{.Values.service.name}}
             servicePort: 8080
+    - host: "*.upp.ft.com"
+      http:
+        paths:
+        - path: /drafts/content/.*/suggestions
+          backend:
+            serviceName: {{.Values.service.name}}
+            servicePort: 8080
