@@ -2,7 +2,9 @@ package draft
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/Financial-Times/draft-content-suggestions/mocks"
@@ -56,12 +58,15 @@ func TestDraftContentAPI_IsGTGFailureInvalidEndpoint(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = contentAPI.IsGTG(context.Background())
-	assert.Error(t, err)
+
+	var urlErr *url.Error
+	if assert.Error(t, err) && errors.As(err, &urlErr) {
+		assert.Equal(t, "parse", urlErr.Op)
+	}
 	assert.Len(t, hook.AllEntries(), 1)
 	assert.Equal(t, log.ErrorLevel, hook.LastEntry().Level)
 	assert.Equal(t, "Error in creating GTG request to draft-content-public-read", hook.LastEntry().Message)
 	assert.Equal(t, ":#", hook.LastEntry().Data["healthEndpoint"])
-	assert.Equal(t, "parse :: missing protocol scheme", hook.LastEntry().Data["error"].(error).Error())
 }
 
 func TestDraftContentAPI_IsGTGFailureRequestError(t *testing.T) {
@@ -75,12 +80,15 @@ func TestDraftContentAPI_IsGTGFailureRequestError(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = contentAPI.IsGTG(context.Background())
-	assert.Error(t, err)
+	var urlErr *url.Error
+	if assert.Error(t, err) && errors.As(err, &urlErr) {
+		assert.Equal(t, "Get", urlErr.Op)
+	}
+
 	assert.Len(t, hook.AllEntries(), 1)
 	assert.Equal(t, log.ErrorLevel, hook.LastEntry().Level)
 	assert.Equal(t, "Error in GTG request to draft-content-public-read", hook.LastEntry().Message)
 	assert.Equal(t, "__gtg", hook.LastEntry().Data["healthEndpoint"])
-	assert.Equal(t, "Get __gtg: unsupported protocol scheme \"\"", hook.LastEntry().Data["error"].(error).Error())
 }
 
 func TestDraftContentAPI_FetchDraftContentSuccess(t *testing.T) {

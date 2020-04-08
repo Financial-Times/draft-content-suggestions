@@ -3,7 +3,9 @@ package suggestions
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/Financial-Times/draft-content-suggestions/mocks"
@@ -58,13 +60,16 @@ func TestUmbrellaAPI_IsGTGFailureInvalidEndpoint(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = umbrellaAPI.IsGTG(context.Background())
-	assert.Error(t, err)
-	assert.Error(t, err)
+
+	var urlErr *url.Error
+	if assert.Error(t, err) && errors.As(err, &urlErr) {
+		assert.Equal(t, "parse", urlErr.Op)
+	}
+
 	assert.Len(t, hook.AllEntries(), 1)
 	assert.Equal(t, log.ErrorLevel, hook.LastEntry().Level)
 	assert.Equal(t, "Error in creating GTG request to UPP suggestions API", hook.LastEntry().Message)
 	assert.Equal(t, ":#", hook.LastEntry().Data["healthEndpoint"])
-	assert.Equal(t, "parse :: missing protocol scheme", hook.LastEntry().Data["error"].(error).Error())
 }
 
 func TestUmbrellaAPI_IsGTGFailureRequestError(t *testing.T) {
@@ -77,13 +82,16 @@ func TestUmbrellaAPI_IsGTGFailureRequestError(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = umbrellaAPI.IsGTG(context.Background())
-	assert.Error(t, err)
-	assert.Error(t, err)
+
+	var urlErr *url.Error
+	if assert.Error(t, err) && errors.As(err, &urlErr) {
+		assert.Equal(t, "Get", urlErr.Op)
+	}
+
 	assert.Len(t, hook.AllEntries(), 1)
 	assert.Equal(t, log.ErrorLevel, hook.LastEntry().Level)
 	assert.Equal(t, "Error in GTG request to UPP suggestions API", hook.LastEntry().Message)
 	assert.Equal(t, "__gtg", hook.LastEntry().Data["healthEndpoint"])
-	assert.Equal(t, "Get __gtg: unsupported protocol scheme \"\"", hook.LastEntry().Data["error"].(error).Error())
 }
 
 func TestUmbrellaAPI_FetchSuggestions(t *testing.T) {
@@ -103,8 +111,8 @@ func TestUmbrellaAPI_FetchSuggestions(t *testing.T) {
 }
 func TestUmbrellaAPI_FetchDraftContentFailure(t *testing.T) {
 
-	testServer := mocks.NewUmbrellaTestServer(true)
-	testServer.Close()
+	testServer := mocks.NewUmbrellaTestServer(false)
+	defer testServer.Close()
 
 	contentAPI, err := NewUmbrellaAPI(testServer.URL+"/content/suggest", testServer.URL+"/content/suggest/__gtg", apiKey, http.DefaultClient)
 	assert.NoError(t, err)
