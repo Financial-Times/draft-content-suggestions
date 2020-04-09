@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	ErrDraftNotMappable = errors.New("draft content is invalid for mapping status=422")
+	ErrDraftNotMappable = errors.New("draft content is invalid for mapping")
 )
 
 func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Client) (contentAPI ContentAPI, err error) {

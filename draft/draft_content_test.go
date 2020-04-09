@@ -142,8 +142,9 @@ func TestDraftContentAPI_FetchDraftContentUnmappable(t *testing.T) {
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.UnprocessableContentUUID)
 
 	assert.Error(t, err)
-	assert.EqualError(t, ErrDraftNotMappable, "draft content is invalid for mapping status=422")
+	assert.True(t, errors.Is(err, ErrDraftNotMappable))
 	assert.True(t, content == nil)
+
 }
 
 func TestDraftContentAPI_FetchDraftContentNon200(t *testing.T) {
