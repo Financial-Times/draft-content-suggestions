@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Financial-Times/transactionid-utils-go"
-	"github.com/satori/go.uuid"
+	transactionidutils "github.com/Financial-Times/transactionid-utils-go"
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +26,8 @@ func TestValidateEndpointFailure(t *testing.T) {
 }
 
 func TestValidateUUIDSuccess(t *testing.T) {
-	v4 := uuid.NewV4()
+	v4, err := uuid.NewV4()
+	assert.NoError(t, err)
 	assert.NoError(t, ValidateUUID(v4.String()))
 }
 

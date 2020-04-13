@@ -10,11 +10,8 @@ from Draft Content service and querying Suggestions Umbrella service.
 
 Download the source code, dependencies and test dependencies:
 
-        curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-        cd $GOPATH/src/
-        git clone github.com:Financial-Times/draft-content-suggestions
-        cd github.com/Financial-Times/draft-content-suggestions
-        dep ensure -vendor-only
+        go get github.com:Financial-Times/draft-content-suggestions
+        cd $GOPATH/src/github.com/Financial-Times/draft-content-suggestions
         go build .
 
 ## Running locally

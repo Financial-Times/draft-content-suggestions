@@ -3,7 +3,6 @@ package suggestions
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"github.com/Financial-Times/draft-content-suggestions/commons"
 	log "github.com/sirupsen/logrus"
 )
+
+const APIKeyHeader = "X-Api-Key"
 
 func NewUmbrellaAPI(endpoint string, gtgEndpoint string, apiKey string, httpClient *http.Client) (UmbrellaAPI, error) {
 
@@ -44,31 +45,29 @@ type umbrellaAPI struct {
 
 func (u *umbrellaAPI) FetchSuggestions(ctx context.Context, content []byte) (suggestion []byte, err error) {
 
-	request, err := http.NewRequest(http.MethodPost, u.endpoint, bytes.NewBuffer(content))
-	request.Header.Set("X-Api-Key", u.apiKey)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.endpoint, bytes.NewBuffer(content))
+	req.Header.Set(APIKeyHeader, u.apiKey)
 
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := u.httpClient.Do(request.WithContext(ctx))
+	res, err := u.httpClient.Do(req)
 
 	if err != nil {
 		return nil, err
 	}
 
-	defer response.Body.Close()
+	defer res.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
-		return nil,
-			errors.New(fmt.Sprintf("Suggestions Umbrella endpoint fails with response code: %v", response.StatusCode))
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("suggestions Umbrella endpoint fail: %s", res.Status)
 	}
 
-	suggestion, err = ioutil.ReadAll(response.Body)
+	suggestion, err = ioutil.ReadAll(res.Body)
 
 	if err != nil {
-		return nil,
-			errors.New(fmt.Sprintf("Failed reading the response body from Suggestions Umbrella endpoint %v", err))
+		return nil, fmt.Errorf("failed reading the response body from Suggestions Umbrella endpoint: %w", err)
 	}
 
 	return suggestion, nil
@@ -86,7 +85,7 @@ func (u *umbrellaAPI) IsGTG(ctx context.Context) (string, error) {
 		log.WithError(err).WithField("healthEndpoint", u.gtgEndpoint).Error("Error in creating GTG request to UPP suggestions API")
 		return "", err
 	}
-	gtgReq.Header.Set("X-Api-Key", u.apiKey)
+	gtgReq.Header.Set(APIKeyHeader, u.apiKey)
 
 	response, err := u.httpClient.Do(gtgReq.WithContext(ctx))
 
@@ -101,7 +100,7 @@ func (u *umbrellaAPI) IsGTG(ctx context.Context) (string, error) {
 		log.WithField("healthEndpoint", u.gtgEndpoint).
 			WithField("status", response.StatusCode).
 			Error("GTG for UPP suggestions API returned a non-200 HTTP status")
-		return "", fmt.Errorf("GTG for UPP suggestions API returned a non-200 HTTP status: %v", response.StatusCode)
+		return "", fmt.Errorf("GTG for UPP suggestions API returned a non-200 HTTP status: %d", response.StatusCode)
 	}
 
 	return "UPP suggestions API is healthy", nil
