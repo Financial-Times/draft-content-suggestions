@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	tidutils "github.com/Financial-Times/transactionid-utils-go"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // Common type/behaviour definition for an endpoint
@@ -44,14 +44,14 @@ func WriteJSONMessage(w http.ResponseWriter, status int, msg string) error {
 // NewContextFromRequest provides a new context including a trxId
 // from the request or if missing, a brand new trxId.
 func NewContextFromRequest(r *http.Request) context.Context {
-	return tidutils.TransactionAwareContext(context.Background(), tidutils.GetTransactionIDFromRequest(r))
+	return tidutils.TransactionAwareContext(r.Context(), tidutils.GetTransactionIDFromRequest(r))
 }
 
 // ValidateEndpoints provides url/uri level validation, it does not make any actual http(s) requests
 func ValidateEndpoint(endpoint string) error {
 
 	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
-		return errors.New(fmt.Sprintf("Missing scheme in endpoint: %v", endpoint))
+		return fmt.Errorf("missing scheme in endpoint: %s", endpoint)
 	}
 	_, err := url.ParseRequestURI(endpoint)
 
