@@ -4,54 +4,78 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
+	logger "github.com/Financial-Times/go-logger/v2"
+
+	logrus "github.com/sirupsen/logrus"
+	logTest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestHealthService_HealthSuccess(t *testing.T) {
-
+	log := logger.NewUPPLogger("Test", "INFO")
+	hook := logTest.NewLocal(log.Logger)
 	umbrellaAPI := new(UmbrellaAPI)
 	contentAPI := new(ContentAPI)
 
 	umbrellaAPI.On("IsGTG", context.Background()).Return("good to go here!", nil)
+	umbrellaAPI.On("Endpoint").Return("test")
 	contentAPI.On("IsGTG", context.Background()).Return("good to go here!", nil)
+	contentAPI.On("Endpoint").Return("test")
 
-	healthService := NewHealthService("", "", "", contentAPI, umbrellaAPI)
+	healthService := NewService("", "", "", contentAPI, umbrellaAPI, log)
 
 	gtg := healthService.GTG()
 
 	assert.True(t, gtg.GoodToGo)
+	assert.Empty(t, hook.Entries)
 }
 
 func TestHealthService_HealthPartialFailure(t *testing.T) {
-
+	log := logger.NewUPPLogger("Test", "INFO")
+	hook := logTest.NewLocal(log.Logger)
 	umbrellaAPI := new(UmbrellaAPI)
 	contentAPI := new(ContentAPI)
 
 	umbrellaAPI.On("IsGTG", context.Background()).Return("", errors.New("dying of boredom"))
+	umbrellaAPI.On("Endpoint").Return("test")
 	contentAPI.On("IsGTG", context.Background()).Return("good to go here!", nil)
+	contentAPI.On("Endpoint").Return("test")
 
-	healthService := NewHealthService("", "", "", contentAPI, umbrellaAPI)
+	healthService := NewService("", "", "", contentAPI, umbrellaAPI, log)
 
 	gtg := healthService.GTG()
 
 	assert.False(t, gtg.GoodToGo)
+	if assert.Len(t, hook.AllEntries(), 1) {
+		assert.Equal(t, logrus.ErrorLevel, hook.LastEntry().Level)
+	}
 }
 
 func TestHealthService_HealthFullFailure(t *testing.T) {
-
+	log := logger.NewUPPLogger("Test", "INFO")
+	hook := logTest.NewLocal(log.Logger)
 	umbrellaAPI := new(UmbrellaAPI)
 	contentAPI := new(ContentAPI)
 
 	umbrellaAPI.On("IsGTG", context.Background()).Return("", errors.New("dying of boredom"))
+	umbrellaAPI.On("Endpoint").Return("test")
 	contentAPI.On("IsGTG", context.Background()).Return("", errors.New("dying of boredom"))
+	contentAPI.On("Endpoint").Return("test")
 
-	healthService := NewHealthService("", "", "", contentAPI, umbrellaAPI)
+	healthService := NewService("", "", "", contentAPI, umbrellaAPI, log)
 
 	gtg := healthService.GTG()
 
 	assert.False(t, gtg.GoodToGo)
+
+	// Without a sleep the hook randomly returns 1 or 2 log entries causing the test to fail
+	time.Sleep(10 * time.Millisecond)
+	if assert.Len(t, hook.AllEntries(), 2) {
+		assert.Equal(t, logrus.ErrorLevel, hook.LastEntry().Level)
+	}
 }
 
 // Mocks
