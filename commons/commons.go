@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	tidutils "github.com/Financial-Times/transactionid-utils-go"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // Common type/behaviour definition for an endpoint
@@ -64,6 +64,6 @@ func ValidateEndpoint(endpoint string) error {
 
 // ValidateUUID checks the uuid string for supported formats
 func ValidateUUID(u string) error {
-	_, err := uuid.FromString(u)
+	_, err := uuid.Parse(u)
 	return err
 }
