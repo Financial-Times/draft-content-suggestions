@@ -10,7 +10,11 @@ import (
 	"github.com/Financial-Times/draft-content-suggestions/commons"
 )
 
-const APIKeyHeader = "X-Api-Key"
+const (
+	APIKeyHeader = "X-Api-Key"
+	OriginHeader = "X-Origin"
+	Origin       = "PAC"
+)
 
 func NewUmbrellaAPI(endpoint string, gtgEndpoint string, apiKey string, httpClient *http.Client, healthHTTPClient *http.Client) (UmbrellaAPI, error) {
 	umbrellaAPI := &umbrellaAPI{endpoint, gtgEndpoint, apiKey, httpClient, healthHTTPClient}
@@ -48,6 +52,7 @@ func (u *umbrellaAPI) FetchSuggestions(ctx context.Context, content []byte) (sug
 	}
 
 	req.Header.Set(APIKeyHeader, u.apiKey)
+	req.Header.Set(OriginHeader, Origin)
 
 	res, err := u.httpClient.Do(req)
 	if err != nil {

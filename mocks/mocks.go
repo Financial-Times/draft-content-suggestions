@@ -132,6 +132,11 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 
 		switch r.URL.Path {
 		case "/content/suggest":
+			if r.Header.Get("X-Origin") != "PAC" {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(`{ message: "Request has invalid 'Origin' header" }`))
+				return
+			}
 			if !healthy {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
