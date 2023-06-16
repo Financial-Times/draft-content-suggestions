@@ -48,8 +48,8 @@ spec:
         - name: SUGGESTIONS_API_KEY
           valueFrom:
             secretKeyRef:
-              name: draft-content-suggestions
-              key: upp-suggestions-umbrella-api-key
+              name: doppler-global-secrets
+              key: DRAFT_CONTENT_SUGGESTIONS_UPP_SUGGESTIONS_UMBRELLA_API_KEY
         - name: LOG_LEVEL
           value: INFO
         ports:
