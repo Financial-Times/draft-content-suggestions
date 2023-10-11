@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -72,7 +72,7 @@ func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([
 		return nil, fmt.Errorf("error in draft content retrival status=%v", response.StatusCode)
 	}
 
-	bytes, err := ioutil.ReadAll(response.Body)
+	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}

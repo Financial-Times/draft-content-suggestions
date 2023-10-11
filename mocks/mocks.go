@@ -1,10 +1,12 @@
 package mocks
 
 import (
+	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 )
 
 const ValidMockContentUUID = "6f14ea94-690f-3ed4-98c7-b926683c735a"
@@ -14,6 +16,8 @@ const FailsRetrivalContentUuid = "7597bf73-4420-4194-98ef-4e5b1e8267e9"
 const MissingMockContentUUID = "711e5bc1-3470-4297-ae26-154f145a6287"
 
 const UnprocessableContentUUID = "910b60e8-13d8-4b51-871a-d29cf21eb583"
+
+const AuthorizationHeader = "Authorization"
 
 const MockSuggestions = `{
     "suggestions": [
@@ -122,10 +126,8 @@ func NewDraftContentTestServer(healthy bool) *httptest.Server {
 }
 
 func NewUmbrellaTestServer(healthy bool) *httptest.Server {
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		if r.Header.Get("X-Api-Key") == "" {
+		if basicAuth := r.Header.Get(AuthorizationHeader); basicAuth != createBasicAuth("username", "password") {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -142,7 +144,7 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 				return
 			}
 
-			bytes, err := ioutil.ReadAll(r.Body)
+			bytes, err := io.ReadAll(r.Body)
 
 			if err != nil || bytes == nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -169,4 +171,8 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 	}))
 
 	return server
+}
+
+func createBasicAuth(testUsername string, testPassword string) string {
+	return "Basic " + base64.StdEncoding.EncodeToString([]byte(strings.Join([]string{testUsername, testPassword}, ":")))
 }

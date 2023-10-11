@@ -1,6 +1,6 @@
 module github.com/Financial-Times/draft-content-suggestions
 
-go 1.17
+go 1.21
 
 require (
 	github.com/Financial-Times/api-endpoint v1.0.0
