@@ -1,12 +1,10 @@
 package mocks
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 )
 
 const ValidMockContentUUID = "6f14ea94-690f-3ed4-98c7-b926683c735a"
@@ -127,8 +125,16 @@ func NewDraftContentTestServer(healthy bool) *httptest.Server {
 
 func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if basicAuth := r.Header.Get(AuthorizationHeader); basicAuth != createBasicAuth("username", "password") {
+		username, password, ok := r.BasicAuth()
+		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte("unauthorized"))
+			return
+		}
+
+		if username != "username" || password != "password" {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte("unauthorized"))
 			return
 		}
 
@@ -171,8 +177,4 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 	}))
 
 	return server
-}
-
-func createBasicAuth(testUsername string, testPassword string) string {
-	return "Basic " + base64.StdEncoding.EncodeToString([]byte(strings.Join([]string{testUsername, testPassword}, ":")))
 }
