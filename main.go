@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -70,21 +71,21 @@ func main() {
 	})
 	suggestionsEndpoint := app.String(cli.StringOpt{
 		Name:   "suggestions-umbrella-endpoint",
-		Value:  "http://test.api.ft.com/content/suggest",
+		Value:  "https://upp-staging-delivery-glb.upp.ft.com/content/suggest",
 		Desc:   "Endpoint for Suggestions Umbrella",
 		EnvVar: "SUGGESTIONS_ENDPOINT",
 	})
 	suggestionsGtgEndpoint := app.String(cli.StringOpt{
 		Name:   "suggestions-umbrella-gtg-endpoint",
-		Value:  "http://test.api.ft.com/content/suggest/__gtg",
+		Value:  "https://upp-staging-delivery-glb.upp.ft.com/content/suggest/__gtg",
 		Desc:   "Endpoint for Suggestions Umbrella",
 		EnvVar: "SUGGESTIONS_GTG_ENDPOINT",
 	})
-	suggestionsAPIKey := app.String(cli.StringOpt{
-		Name:   "suggestions-api-key",
-		Value:  "",
-		Desc:   "API key to access Suggestions Umbrella",
-		EnvVar: "SUGGESTIONS_API_KEY",
+	deliveryBasicAuth := app.String(cli.StringOpt{
+		Name:   "delivery-basic-auth",
+		Value:  "username:password",
+		Desc:   "Basic auth for access to the delivery UPP clusters",
+		EnvVar: "DELIVERY_BASIC_AUTH",
 	})
 	logLevel := app.String(cli.StringOpt{
 		Name:   "log-level",
@@ -121,7 +122,12 @@ func main() {
 			return
 		}
 
-		umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsGtgEndpoint, *suggestionsAPIKey, loggingCl, healthCl)
+		basicAuthCredentials := strings.Split(*deliveryBasicAuth, ":")
+		if len(basicAuthCredentials) != 2 {
+			log.Fatal("error while resolving basic auth")
+		}
+
+		umbrellaAPI, err := suggestions.NewUmbrellaAPI(*suggestionsEndpoint, *suggestionsGtgEndpoint, basicAuthCredentials[0], basicAuthCredentials[1], loggingCl, healthCl)
 		if err != nil {
 			log.WithError(err).Error("Suggestions Umbrella API error, exiting ...")
 			return

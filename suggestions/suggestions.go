@@ -4,20 +4,21 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/Financial-Times/draft-content-suggestions/commons"
 )
 
 const (
-	APIKeyHeader = "X-Api-Key"
+	TestUsername = "username"
+	TestPassword = "password"
 	OriginHeader = "X-Origin"
 	Origin       = "PAC"
 )
 
-func NewUmbrellaAPI(endpoint string, gtgEndpoint string, apiKey string, httpClient *http.Client, healthHTTPClient *http.Client) (UmbrellaAPI, error) {
-	umbrellaAPI := &umbrellaAPI{endpoint, gtgEndpoint, apiKey, httpClient, healthHTTPClient}
+func NewUmbrellaAPI(endpoint string, gtgEndpoint string, username string, password string, httpClient *http.Client, healthHTTPClient *http.Client) (UmbrellaAPI, error) {
+	umbrellaAPI := &umbrellaAPI{endpoint, gtgEndpoint, username, password, httpClient, healthHTTPClient}
 
 	err := umbrellaAPI.IsValid()
 	if err != nil {
@@ -40,7 +41,8 @@ type UmbrellaAPI interface {
 type umbrellaAPI struct {
 	endpoint         string
 	gtgEndpoint      string
-	apiKey           string
+	username         string
+	password         string
 	httpClient       *http.Client
 	healthHTTPClient *http.Client
 }
@@ -51,7 +53,7 @@ func (u *umbrellaAPI) FetchSuggestions(ctx context.Context, content []byte) (sug
 		return nil, err
 	}
 
-	req.Header.Set(APIKeyHeader, u.apiKey)
+	req.SetBasicAuth(u.username, u.password)
 	req.Header.Set(OriginHeader, Origin)
 
 	res, err := u.httpClient.Do(req)
@@ -64,7 +66,7 @@ func (u *umbrellaAPI) FetchSuggestions(ctx context.Context, content []byte) (sug
 		return nil, fmt.Errorf("suggestions Umbrella endpoint fail: %s", res.Status)
 	}
 
-	suggestion, err = ioutil.ReadAll(res.Body)
+	suggestion, err = io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed reading the response body from Suggestions Umbrella endpoint: %w", err)
 	}
@@ -82,7 +84,7 @@ func (u *umbrellaAPI) IsGTG(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("error creating GTG request: %w", err)
 	}
 
-	req.Header.Set(APIKeyHeader, u.apiKey)
+	req.SetBasicAuth(u.username, u.password)
 
 	response, err := u.healthHTTPClient.Do(req.WithContext(ctx))
 	if err != nil {

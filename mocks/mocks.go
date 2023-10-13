@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 )
@@ -14,6 +14,8 @@ const FailsRetrivalContentUuid = "7597bf73-4420-4194-98ef-4e5b1e8267e9"
 const MissingMockContentUUID = "711e5bc1-3470-4297-ae26-154f145a6287"
 
 const UnprocessableContentUUID = "910b60e8-13d8-4b51-871a-d29cf21eb583"
+
+const AuthorizationHeader = "Authorization"
 
 const MockSuggestions = `{
     "suggestions": [
@@ -122,11 +124,17 @@ func NewDraftContentTestServer(healthy bool) *httptest.Server {
 }
 
 func NewUmbrellaTestServer(healthy bool) *httptest.Server {
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		if r.Header.Get("X-Api-Key") == "" {
+		username, password, ok := r.BasicAuth()
+		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte("unauthorized"))
+			return
+		}
+
+		if username != "username" || password != "password" {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte("unauthorized"))
 			return
 		}
 
@@ -142,7 +150,7 @@ func NewUmbrellaTestServer(healthy bool) *httptest.Server {
 				return
 			}
 
-			bytes, err := ioutil.ReadAll(r.Body)
+			bytes, err := io.ReadAll(r.Body)
 
 			if err != nil || bytes == nil {
 				w.WriteHeader(http.StatusBadRequest)
