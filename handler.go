@@ -22,6 +22,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 	uuid := mux.Vars(request)["uuid"]
 	log := rh.log.WithTransactionID(tidutils.GetTransactionIDFromRequest(request)).WithUUID(uuid)
 
+	log.Info("Processing draft suggestions request")
 	err := commons.ValidateUUID(uuid)
 	if err != nil {
 		msg := "Invalid UUID"
