@@ -7,7 +7,7 @@ content-types:
     end-point: "http://upp-live-blog-package-validator:8080"   
   "application/vnd.ft-upp-article+json":
     validator: "spark"
-    end-point: "http://localhost:8080"
+    end-point: "http://upp-article-validator:8080"
   "application/vnd.ft-upp-content-placeholder+json":
     validator: "spark"
     end-point: "http://upp-content-placeholder-validator:8080"
@@ -28,7 +28,7 @@ end-point-health-checks:
     severity: 1
     technical-summary: "Live blog package content validator is not available at %v"
     checker-name: "Draft content upp-live-blog-package-validator"
-  "http://localhost:8080":
+  "http://upp-article-validator:8080":
     id: "check-draft-upp-article-validator"
     business-impact: "Draft spark content cannot be provided for suggestions"
     name: "Check upp-article-validator service"
