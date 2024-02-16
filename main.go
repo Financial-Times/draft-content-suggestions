@@ -20,6 +20,7 @@ import (
 	cli "github.com/jawher/mow.cli"
 	metrics "github.com/rcrowley/go-metrics"
 
+	"github.com/Financial-Times/draft-content-suggestions/config"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/health"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
@@ -87,6 +88,12 @@ func main() {
 		Desc:   "Basic auth for access to the delivery UPP clusters",
 		EnvVar: "DELIVERY_BASIC_AUTH",
 	})
+	validatorYml := app.String(cli.StringOpt{
+		Name:   "validator-yml",
+		Value:  "./config.yml",
+		Desc:   "Location of the Validator configuration YML file.",
+		EnvVar: "VALIDATOR_YML",
+	})
 	logLevel := app.String(cli.StringOpt{
 		Name:   "log-level",
 		Value:  "info",
@@ -116,7 +123,15 @@ func main() {
 			return
 		}
 
-		contentAPI, err := draft.NewContentAPI(*draftContentEndpoint, *draftContentGtgEndpoint, loggingCl, healthCl)
+		validatorConfig, err := config.ReadConfig(*validatorYml)
+		if err != nil {
+			log.WithError(err).Fatal("unable to read r/w YAML configuration")
+		}
+
+		contentTypeMapping := draft.BuildContentTypeMapping(validatorConfig, loggingCl, log)
+		resolver := draft.NewDraftContentValidatorResolver(contentTypeMapping)
+
+		contentAPI, err := draft.NewContentAPI(*draftContentEndpoint, *draftContentGtgEndpoint, loggingCl, healthCl, resolver)
 		if err != nil {
 			log.WithError(err).Error("Draft Content API error, exiting ...")
 			return
@@ -133,7 +148,13 @@ func main() {
 			return
 		}
 
-		serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, log}, log)
+		healthService, err := health.NewService(*appSystemCode, *appName, appDescription,
+			contentAPI, umbrellaAPI, validatorConfig, extractServices(contentTypeMapping), log)
+		if err != nil {
+			log.WithError(err).Fatal("Unable to create health service")
+		}
+
+		serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, log}, healthService, log)
 	}
 
 	err := app.Run(os.Args)
@@ -143,10 +164,17 @@ func main() {
 	}
 }
 
-func serveEndpoints(appSystemCode string, appName string, port string, apiYml *string, requestHandler requestHandler, log *logger.UPPLogger) {
-	healthService := health.NewService(appSystemCode, appName, appDescription,
-		requestHandler.dca, requestHandler.sua, log)
+func extractServices(dcm map[string]draft.DraftContentValidator) []health.ExternalService {
+	result := make([]health.ExternalService, 0, len(dcm))
 
+	for _, value := range dcm {
+		result = append(result, value)
+	}
+
+	return result
+}
+
+func serveEndpoints(appSystemCode string, appName string, port string, apiYml *string, requestHandler requestHandler, healthService *health.Service, log *logger.UPPLogger) {
 	serveMux := http.NewServeMux()
 
 	serveMux.HandleFunc(health.DefaultHealthPath, http.HandlerFunc(fthealth.Handler(healthService.Health())))
@@ -165,6 +193,8 @@ func serveEndpoints(appSystemCode string, appName string, port string, apiYml *s
 	servicesRouter := mux.NewRouter()
 	servicesRouter.HandleFunc("/drafts/content/{uuid}/suggestions",
 		requestHandler.draftContentSuggestionsRequest).Methods("GET")
+	servicesRouter.HandleFunc("/drafts/content/{uuid}/suggestions",
+		requestHandler.getDraftSuggestionsForContent).Methods("POST")
 
 	monitoringRouter := httphandlers.TransactionAwareRequestLoggingHandler(log, servicesRouter)
 	monitoringRouter = httphandlers.HTTPMetricsHandler(metrics.DefaultRegistry, monitoringRouter)

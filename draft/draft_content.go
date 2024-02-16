@@ -9,13 +9,18 @@ import (
 	"strings"
 
 	"github.com/Financial-Times/draft-content-suggestions/commons"
+	"github.com/Financial-Times/draft-content-suggestions/config"
+	"github.com/Financial-Times/go-logger/v2"
+	tidutils "github.com/Financial-Times/transactionid-utils-go"
 )
 
 var (
-	ErrDraftNotMappable = errors.New("draft content is invalid for mapping")
+	ErrDraftNotMappable             = errors.New("draft content is invalid for mapping")
+	ErrDraftNotValid                = errors.New("draft content is invalid")
+	ErrDraftContentTypeNotSupported = errors.New("draft content-type is invalid")
 )
 
-func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Client, healthHTTPClient *http.Client) (contentAPI ContentAPI, err error) {
+func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Client, healthHTTPClient *http.Client, resolver DraftContentValidatorResolver) (contentAPI ContentAPI, err error) {
 	if !strings.HasSuffix(endpoint, "/") {
 		endpoint += "/"
 	}
@@ -25,6 +30,7 @@ func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Clie
 		healthEndpoint,
 		httpClient,
 		healthHTTPClient,
+		resolver,
 	}
 
 	err = contentAPI.IsValid()
@@ -39,6 +45,7 @@ func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Clie
 // ContentApi for accessing to draft-content-api endpoint
 type ContentAPI interface {
 	FetchDraftContent(ctx context.Context, uuid string) (content []byte, err error)
+	FetchValidatedContent(ctx context.Context, body io.Reader, contentUUID string, contentType string, log *logger.UPPLogger) ([]byte, error)
 	commons.Endpoint
 }
 
@@ -47,6 +54,7 @@ type draftContentAPI struct {
 	healthEndpoint   string
 	httpClient       *http.Client
 	healthHTTPClient *http.Client
+	resolver         DraftContentValidatorResolver
 }
 
 func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([]byte, error) {
@@ -78,6 +86,69 @@ func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([
 	}
 
 	return bytes, nil
+}
+
+func (d *draftContentAPI) FetchValidatedContent(ctx context.Context, body io.Reader, contentUUID string, contentType string, log *logger.UPPLogger) ([]byte, error) {
+	tid, _ := tidutils.GetTransactionIDFromContext(ctx)
+	readLog := log.WithField(tidutils.TransactionIDHeader, tid).WithField("uuid", contentUUID)
+
+	var validatedContent io.ReadCloser
+
+	validator, resolverErr := d.resolver.ValidatorForContentType(contentType)
+
+	if resolverErr != nil {
+		readLog.WithError(resolverErr).Error("Unable to validate content")
+		return nil, resolverErr
+	}
+
+	validatedContent, err := validator.Validate(ctx, contentUUID, body, contentType, log)
+	if err != nil {
+		readLog.WithError(err).Warn("Validator error")
+		var validatorError ValidatorError
+		if errors.As(err, &validatorError) {
+			switch validatorError.StatusCode() {
+			case http.StatusNotFound:
+				fallthrough
+			case http.StatusUnsupportedMediaType:
+				err = ErrDraftContentTypeNotSupported
+			case http.StatusUnprocessableEntity:
+				err = ErrDraftNotValid
+			}
+		}
+		return nil, err
+	}
+	defer validatedContent.Close()
+
+	bytes, err := io.ReadAll(validatedContent)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, err
+}
+
+func BuildContentTypeMapping(validatorConfig *config.Config, httpClient *http.Client, log *logger.UPPLogger) map[string]DraftContentValidator {
+	contentTypeMapping := map[string]DraftContentValidator{}
+
+	for contentType, cfg := range validatorConfig.ContentTypes {
+		var service DraftContentValidator
+
+		switch cfg.Validator {
+		case "spark":
+			service = NewSparkDraftContentValidatorService(cfg.Endpoint, httpClient)
+		default:
+			log.WithField("Validator", cfg.Validator).Fatal("Unknown validator")
+		}
+		contentTypeMapping[contentType] = service
+
+		log.
+			WithField("Content-Type", contentType).
+			WithField("Endpoint", cfg.Endpoint).
+			WithField("Validator", cfg.Validator).
+			Info("added validator service")
+	}
+
+	return contentTypeMapping
 }
 
 func (d *draftContentAPI) Endpoint() string {
