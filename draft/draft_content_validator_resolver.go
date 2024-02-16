@@ -5,23 +5,23 @@ import (
 	"strings"
 )
 
-// DraftContentValidatorResolver manages the validators available for a given originId/content-type pair.
-type DraftContentValidatorResolver interface {
-	// ValidatorForContentType Resolves and returns a DraftContentValidator implementation if present.
-	ValidatorForContentType(contentType string) (DraftContentValidator, error)
+// ContentValidatorResolver manages the validators available for a given originId/content-type pair.
+type ContentValidatorResolver interface {
+	// ValidatorForContentType Resolves and returns a ContentValidator implementation if present.
+	ValidatorForContentType(contentType string) (ContentValidator, error)
 }
 
-// NewDraftContentValidatorResolver returns a DraftContentValidatorResolver implementation
-func NewDraftContentValidatorResolver(contentTypeToValidator map[string]DraftContentValidator) DraftContentValidatorResolver {
-	return &draftContentValidatorResolver{contentTypeToValidator}
+// NewContentValidatorResolver returns a ContentValidatorResolver implementation
+func NewContentValidatorResolver(contentTypeToValidator map[string]ContentValidator) ContentValidatorResolver {
+	return &contentValidatorResolver{contentTypeToValidator}
 }
 
-type draftContentValidatorResolver struct {
-	contentTypeToValidator map[string]DraftContentValidator
+type contentValidatorResolver struct {
+	contentTypeToValidator map[string]ContentValidator
 }
 
 // ValidatorForContentType implementation checks the content-type validation for a validator resolution.
-func (resolver *draftContentValidatorResolver) ValidatorForContentType(contentType string) (DraftContentValidator, error) {
+func (resolver *contentValidatorResolver) ValidatorForContentType(contentType string) (ContentValidator, error) {
 	contentType = stripMediaTypeParameters(contentType)
 	validator, found := resolver.contentTypeToValidator[contentType]
 

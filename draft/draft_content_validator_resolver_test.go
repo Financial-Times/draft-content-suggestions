@@ -9,7 +9,7 @@ import (
 
 func TestDraftContentValidatorResolver_ValidatorForContentType(t *testing.T) {
 	ucv := NewSparkDraftContentValidatorService("upp-article-endpoint", http.DefaultClient)
-	resolver := NewDraftContentValidatorResolver(cctOnlyResolverConfig(ucv))
+	resolver := NewContentValidatorResolver(cctOnlyResolverConfig(ucv))
 
 	uppContentValidator, err := resolver.ValidatorForContentType("application/vnd.ft-upp-article+json; version=1.0; charset=utf-8")
 
@@ -18,7 +18,7 @@ func TestDraftContentValidatorResolver_ValidatorForContentType(t *testing.T) {
 }
 
 func TestDraftContentValidatorResolver_MissingSparkValidation(t *testing.T) {
-	resolver := NewDraftContentValidatorResolver(map[string]DraftContentValidator{})
+	resolver := NewContentValidatorResolver(map[string]ContentValidator{})
 
 	validator, err := resolver.ValidatorForContentType("application/vnd.ft-upp-article+json; version=1.0; charset=utf-8")
 
@@ -26,8 +26,8 @@ func TestDraftContentValidatorResolver_MissingSparkValidation(t *testing.T) {
 	assert.Nil(t, validator)
 }
 
-func cctOnlyResolverConfig(ucv DraftContentValidator) (contentTypeToValidator map[string]DraftContentValidator) {
-	return map[string]DraftContentValidator{
+func cctOnlyResolverConfig(ucv ContentValidator) (contentTypeToValidator map[string]ContentValidator) {
+	return map[string]ContentValidator{
 		contentTypeArticle: ucv,
 	}
 }

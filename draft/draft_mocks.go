@@ -49,9 +49,9 @@ type MockValidatorResolver struct {
 	mock.Mock
 }
 
-func (_mr *MockValidatorResolver) ValidatorForContentType(contentType string) (DraftContentValidator, error) {
+func (_mr *MockValidatorResolver) ValidatorForContentType(contentType string) (ContentValidator, error) {
 	ret := _mr.Called(contentType)
-	r0 := ret.Get(0).(DraftContentValidator)
+	r0 := ret.Get(0).(ContentValidator)
 	rErr := ret.Error(1)
 	return r0, rErr
 }

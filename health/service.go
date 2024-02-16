@@ -39,7 +39,6 @@ type ExternalService interface {
 func NewService(appSystemCode string, appName string,
 	appDescription string, contentAPI draft.ContentAPI,
 	umbrellaAPI suggestions.UmbrellaAPI, hcConfig *config.Config, services []ExternalService, log *logger.UPPLogger) (*Service, error) {
-
 	hc := &Service{
 		config: &appConfig{
 			appSystemCode:  appSystemCode,

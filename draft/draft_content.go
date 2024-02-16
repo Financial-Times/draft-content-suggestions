@@ -20,7 +20,7 @@ var (
 	ErrDraftContentTypeNotSupported = errors.New("draft content-type is invalid")
 )
 
-func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Client, healthHTTPClient *http.Client, resolver DraftContentValidatorResolver) (contentAPI ContentAPI, err error) {
+func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Client, healthHTTPClient *http.Client, resolver ContentValidatorResolver) (contentAPI ContentAPI, err error) {
 	if !strings.HasSuffix(endpoint, "/") {
 		endpoint += "/"
 	}
@@ -54,7 +54,7 @@ type draftContentAPI struct {
 	healthEndpoint   string
 	httpClient       *http.Client
 	healthHTTPClient *http.Client
-	resolver         DraftContentValidatorResolver
+	resolver         ContentValidatorResolver
 }
 
 func (d *draftContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([]byte, error) {
@@ -127,11 +127,11 @@ func (d *draftContentAPI) FetchValidatedContent(ctx context.Context, body io.Rea
 	return bytes, err
 }
 
-func BuildContentTypeMapping(validatorConfig *config.Config, httpClient *http.Client, log *logger.UPPLogger) map[string]DraftContentValidator {
-	contentTypeMapping := map[string]DraftContentValidator{}
+func BuildContentTypeMapping(validatorConfig *config.Config, httpClient *http.Client, log *logger.UPPLogger) map[string]ContentValidator {
+	contentTypeMapping := map[string]ContentValidator{}
 
 	for contentType, cfg := range validatorConfig.ContentTypes {
-		var service DraftContentValidator
+		var service ContentValidator
 
 		switch cfg.Validator {
 		case "spark":

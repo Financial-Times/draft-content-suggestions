@@ -16,7 +16,7 @@ type sparkDraftContentValidator struct {
 	service *platform.Service
 }
 
-func NewSparkDraftContentValidatorService(endpoint string, httpClient *http.Client) DraftContentValidator {
+func NewSparkDraftContentValidatorService(endpoint string, httpClient *http.Client) ContentValidator {
 	s := platform.NewService(endpoint, httpClient)
 	return &sparkDraftContentValidator{s}
 }
@@ -31,7 +31,7 @@ func (validator *sparkDraftContentValidator) Validate(
 	tid, _ := tidutils.GetTransactionIDFromContext(ctx)
 	mapLog := log.WithField(tidutils.TransactionIDHeader, tid).WithField("uuid", contentUUID)
 
-	req, err := newHttpRequest(ctx, "POST", validator.service.Endpoint()+"/validate", nativeBody)
+	req, err := newHTTPRequest(ctx, "POST", validator.service.Endpoint()+"/validate", nativeBody)
 
 	if err != nil {
 		mapLog.WithError(err).Error("Error in creating the HTTP request to the UPP Validator")

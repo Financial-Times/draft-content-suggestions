@@ -129,7 +129,7 @@ func main() {
 		}
 
 		contentTypeMapping := draft.BuildContentTypeMapping(validatorConfig, loggingCl, log)
-		resolver := draft.NewDraftContentValidatorResolver(contentTypeMapping)
+		resolver := draft.NewContentValidatorResolver(contentTypeMapping)
 
 		contentAPI, err := draft.NewContentAPI(*draftContentEndpoint, *draftContentGtgEndpoint, loggingCl, healthCl, resolver)
 		if err != nil {
@@ -154,7 +154,7 @@ func main() {
 			log.WithError(err).Fatal("Unable to create health service")
 		}
 
-		serveEndpoints(*appSystemCode, *appName, *port, apiYml, requestHandler{contentAPI, umbrellaAPI, log}, healthService, log)
+		serveEndpoints(*port, apiYml, requestHandler{contentAPI, umbrellaAPI, log}, healthService, log)
 	}
 
 	err := app.Run(os.Args)
@@ -164,7 +164,7 @@ func main() {
 	}
 }
 
-func extractServices(dcm map[string]draft.DraftContentValidator) []health.ExternalService {
+func extractServices(dcm map[string]draft.ContentValidator) []health.ExternalService {
 	result := make([]health.ExternalService, 0, len(dcm))
 
 	for _, value := range dcm {
@@ -174,7 +174,7 @@ func extractServices(dcm map[string]draft.DraftContentValidator) []health.Extern
 	return result
 }
 
-func serveEndpoints(appSystemCode string, appName string, port string, apiYml *string, requestHandler requestHandler, healthService *health.Service, log *logger.UPPLogger) {
+func serveEndpoints(port string, apiYml *string, requestHandler requestHandler, healthService *health.Service, log *logger.UPPLogger) {
 	serveMux := http.NewServeMux()
 
 	serveMux.HandleFunc(health.DefaultHealthPath, http.HandlerFunc(fthealth.Handler(healthService.Health())))

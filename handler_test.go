@@ -20,6 +20,7 @@ import (
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
 )
 
+// nolint:gocognit // We have agreed as a team to use this nolint when writing table tests
 func TestGetDraftSuggestionsForContent(t *testing.T) {
 	tests := []struct {
 		name                       string
@@ -186,7 +187,7 @@ func handleTestRequest(urlpath string) (resp *http.Response, err error) {
 	}
 
 	contentTypeMapping := draft.BuildContentTypeMapping(validatorConfig, http.DefaultClient, log)
-	resolver := draft.NewDraftContentValidatorResolver(contentTypeMapping)
+	resolver := draft.NewContentValidatorResolver(contentTypeMapping)
 	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.URL+"/drafts/content", draftContentTestServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, resolver)
 	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.URL, umbrellaTestServer.URL+"/__gtg", suggestions.TestUsername, suggestions.TestPassword, http.DefaultClient, http.DefaultClient)
 

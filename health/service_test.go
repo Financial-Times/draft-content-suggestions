@@ -208,7 +208,7 @@ func (_m *ContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([]byt
 }
 
 // FetchDraftContent provides a mock function with given fields: ctx, uuid
-func (_m *ContentAPI) FetchValidatedContent(ctx context.Context, body io.Reader, contentUUID string, contentType string, log *logger.UPPLogger) ([]byte, error) {
+func (_m *ContentAPI) FetchValidatedContent(ctx context.Context, _ io.Reader, contentUUID string, _ string, _ *logger.UPPLogger) ([]byte, error) {
 	ret := _m.Called(ctx, contentUUID)
 
 	var r0 []byte

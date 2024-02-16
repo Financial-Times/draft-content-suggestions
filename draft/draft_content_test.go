@@ -27,7 +27,7 @@ func TestDraftContentAPI_IsGTGSuccess(t *testing.T) {
 	testServer := mocks.NewDraftContentTestServer(true)
 	defer testServer.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 
 	assert.NoError(t, err)
 
@@ -40,7 +40,7 @@ func TestDraftContentAPI_IsGTGFailure503(t *testing.T) {
 	testServer := mocks.NewDraftContentTestServer(false)
 	defer testServer.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 
 	assert.NoError(t, err)
 
@@ -52,7 +52,7 @@ func TestDraftContentAPI_IsGTGFailureInvalidEndpoint(t *testing.T) {
 	testServer := mocks.NewDraftContentTestServer(false)
 	defer testServer.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", ":#", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", ":#", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 
 	assert.NoError(t, err)
 
@@ -68,7 +68,7 @@ func TestDraftContentAPI_IsGTGFailureRequestError(t *testing.T) {
 	testServer := mocks.NewDraftContentTestServer(false)
 	defer testServer.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", "__gtg", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", "__gtg", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 
 	assert.NoError(t, err)
 
@@ -83,7 +83,7 @@ func TestDraftContentAPI_FetchDraftContentSuccess(t *testing.T) {
 	testServer := mocks.NewDraftContentTestServer(true)
 	defer testServer.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.ValidMockContentUUID)
@@ -171,7 +171,7 @@ func TestDraftContentAPI_FetchDraftContentMissing(t *testing.T) {
 	testServer := mocks.NewDraftContentTestServer(true)
 	defer testServer.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.MissingMockContentUUID)
@@ -182,7 +182,7 @@ func TestDraftContentAPI_FetchDraftContentMissing(t *testing.T) {
 
 func TestDraftContentAPI_FetchDraftContentFailure(t *testing.T) {
 
-	contentAPI, err := NewContentAPI("http://localhost/drafts/content", "http://localhost/__gtg", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI("http://localhost/drafts/content", "http://localhost/__gtg", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.ValidMockContentUUID)
@@ -196,7 +196,7 @@ func TestDraftContentAPI_FetchDraftContentUnmappable(t *testing.T) {
 	testServer := mocks.NewDraftContentTestServer(false)
 	defer testServer.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.UnprocessableContentUUID)
@@ -212,7 +212,7 @@ func TestDraftContentAPI_FetchDraftContentNon200(t *testing.T) {
 	testServer := mocks.NewDraftContentTestServer(true)
 	defer testServer.Close()
 
-	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &draftContentValidatorResolver{})
+	contentAPI, err := NewContentAPI(testServer.URL+"/drafts/content", testServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, &contentValidatorResolver{})
 	assert.NoError(t, err)
 
 	content, err := contentAPI.FetchDraftContent(context.Background(), mocks.FailsRetrivalContentUuid)
