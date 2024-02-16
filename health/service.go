@@ -2,12 +2,14 @@ package health
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	logger "github.com/Financial-Times/go-logger/v2"
 	"github.com/Financial-Times/service-status-go/gtg"
 
+	"github.com/Financial-Times/draft-content-suggestions/config"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
 )
@@ -29,9 +31,14 @@ type appConfig struct {
 	appDescription string
 }
 
+type ExternalService interface {
+	Endpoint() string
+	GTG() error
+}
+
 func NewService(appSystemCode string, appName string,
 	appDescription string, contentAPI draft.ContentAPI,
-	umbrellaAPI suggestions.UmbrellaAPI, log *logger.UPPLogger) *Service {
+	umbrellaAPI suggestions.UmbrellaAPI, hcConfig *config.Config, services []ExternalService, log *logger.UPPLogger) (*Service, error) {
 
 	hc := &Service{
 		config: &appConfig{
@@ -55,7 +62,44 @@ func NewService(appSystemCode string, appName string,
 
 	gtgChecks := append(hc.gtgChecks, draftContentCheck, suggestionsCheck)
 	hc.gtgChecks = gtgChecks
-	return hc
+
+	for endpoint, cfg := range hcConfig.HealthChecks {
+		externalService, err := findService(endpoint, services)
+		if err != nil {
+			return nil, err
+		}
+
+		c := fthealth.Check{
+			ID:               cfg.ID,
+			BusinessImpact:   cfg.BusinessImpact,
+			Name:             cfg.Name,
+			PanicGuide:       cfg.PanicGuide,
+			Severity:         cfg.Severity,
+			TechnicalSummary: fmt.Sprintf(cfg.TechnicalSummary, endpoint),
+			Checker:          externalServiceChecker(externalService, cfg.CheckerName),
+		}
+		hc.healthChecks = append(hc.healthChecks, c)
+	}
+	return hc, nil
+}
+
+func findService(endpoint string, services []ExternalService) (ExternalService, error) {
+	for _, s := range services {
+		if s.Endpoint() == endpoint {
+			return s, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unable to find service with endpoint %v", endpoint)
+}
+
+func externalServiceChecker(s ExternalService, serviceName string) func() (string, error) {
+	return func() (string, error) {
+		if err := s.GTG(); err != nil {
+			return fmt.Sprintf("%s is not good-to-go", serviceName), err
+		}
+		return fmt.Sprintf("%s is good-to-go", serviceName), nil
+	}
 }
 
 func (s *Service) Health() fthealth.HC {
