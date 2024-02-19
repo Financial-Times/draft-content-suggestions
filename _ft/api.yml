@@ -145,6 +145,72 @@ paths:
                     - predicate
             required:
               - suggestions
+  /drafts/content/suggestions:
+    post:
+      summary: Get Suggestions For Content
+      description: >
+        Fetches suggestions via
+        using suggestions umbrella service for the body sent with the request.
+      consumes:
+        - application/vnd.ft-upp-article+json
+        - application/vnd.ft-upp-content-placeholder+json
+        - application/vnd.ft-upp-live-blog-post+json
+        - application/vnd.ft-upp-live-blog-package+json
+      produces:
+        - application/json
+      tags:
+        - Public API
+      parameters:
+        - name: uuid
+          in: body
+          description: The UUID of the content
+          required: true
+          schema:
+            type: object
+            example: {"uuid": "97c97db4-4a93-43a4-87c9-b04d7f5284c1"}
+      responses:
+        200:
+          description: Suggestions Response
+          schema:
+            type: object
+            properties:
+              suggestions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: The canonical ID of the concept
+                      x-example: http://www.ft.com/thing/d7113d1d-ed66-3adf-9910-1f62b2c40e6a
+                    predicate:
+                      type: string
+                      description: The relationship between the concept and this piece of FT content. The list below is non-exhaustive and subject to change.
+                      enum:
+                        - http://www.ft.com/ontology/annotation/about
+                        - http://www.ft.com/ontology/implicitlyAbout
+                        - http://www.ft.com/ontology/annotation/mentions
+                        - http://www.ft.com/ontology/classification/isClassifiedBy
+                        - http://www.ft.com/ontology/implicitlyClassifiedBy
+                        - http://www.ft.com/ontology/hasContributor
+                    type:
+                      type: string
+                      description: The type of concept, i.e. Person, Organisation, Topic
+                    apiUrl:
+                      type: string
+                      description: The FT API url of the concept
+                      x-example: http://api.ft.com/things/5507ab98-b747-3ebc-b816-11603b9009f4
+                    prefLabel:
+                      type: string
+                      description: The preferred display label for the concept.
+                    isFTAuthor:
+                      type: boolean
+                      description: Is this person an FT author or not. Only applies to concepts of type People.
+                  required:
+                    - id
+                    - predicate
+            required:
+              - suggestions
           examples:
             application/json:
               suggestions:
