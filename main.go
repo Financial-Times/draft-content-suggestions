@@ -193,7 +193,7 @@ func serveEndpoints(port string, apiYml *string, requestHandler requestHandler, 
 	servicesRouter := mux.NewRouter()
 	servicesRouter.HandleFunc("/drafts/content/{uuid}/suggestions",
 		requestHandler.draftContentSuggestionsRequest).Methods("GET")
-	servicesRouter.HandleFunc("/drafts/content/{uuid}/suggestions",
+	servicesRouter.HandleFunc("/drafts/content/suggestions",
 		requestHandler.getDraftSuggestionsForContent).Methods("POST")
 
 	monitoringRouter := httphandlers.TransactionAwareRequestLoggingHandler(log, servicesRouter)
