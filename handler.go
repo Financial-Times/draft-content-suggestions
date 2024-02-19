@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,6 +19,10 @@ import (
 const (
 	contentTypeHeader = "Content-Type"
 )
+
+type BaseContent struct {
+	UUID string `json:"uuid,omitempty"`
+}
 
 type requestHandler struct {
 	dca draft.ContentAPI
@@ -76,16 +81,7 @@ func (rh *requestHandler) draftContentSuggestionsRequest(writer http.ResponseWri
 }
 
 func (rh *requestHandler) getDraftSuggestionsForContent(writer http.ResponseWriter, request *http.Request) {
-	uuid := mux.Vars(request)["uuid"]
-	log := rh.log.WithTransactionID(tidutils.GetTransactionIDFromRequest(request)).WithUUID(uuid)
-
-	err := commons.ValidateUUID(uuid)
-	if err != nil {
-		msg := "Invalid UUID"
-		log.WithError(err).Warn(msg)
-		_ = commons.WriteJSONMessage(writer, http.StatusBadRequest, msg)
-		return
-	}
+	log := rh.log.WithTransactionID(tidutils.GetTransactionIDFromRequest(request))
 
 	requestBody, err := io.ReadAll(request.Body)
 	if err != nil {
@@ -102,10 +98,27 @@ func (rh *requestHandler) getDraftSuggestionsForContent(writer http.ResponseWrit
 		return
 	}
 
+	var baseContent BaseContent
+	err = json.Unmarshal(requestBody, &baseContent)
+	if err != nil {
+		msg := "error while unmarshalling uuid from the request payload"
+		log.Error(msg)
+		_ = commons.WriteJSONMessage(writer, http.StatusBadRequest, msg)
+	}
+
+	err = commons.ValidateUUID(baseContent.UUID)
+	if err != nil {
+		msg := "Invalid payload UUID"
+		log.WithError(err).Warn(msg)
+		_ = commons.WriteJSONMessage(writer, http.StatusBadRequest, msg)
+		return
+	}
+	log = log.WithUUID(baseContent.UUID)
+
 	contentType := request.Header.Get(contentTypeHeader)
 	ctx := commons.NewContextFromRequest(request)
 
-	content, err := rh.dca.FetchValidatedContent(ctx, bytes.NewReader(requestBody), uuid, contentType, rh.log)
+	content, err := rh.dca.FetchValidatedContent(ctx, bytes.NewReader(requestBody), baseContent.UUID, contentType, rh.log)
 	if err != nil {
 		msg := "failed while validating content"
 		log.WithError(err).Warn(msg)

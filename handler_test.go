@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	logger "github.com/Financial-Times/go-logger/v2"
@@ -24,7 +23,6 @@ import (
 func TestGetDraftSuggestionsForContent(t *testing.T) {
 	tests := []struct {
 		name                       string
-		UUID                       string
 		retMockSuggestionsResponse []byte
 		retMockSuggestionsErr      error
 		retMockContentAPIResponse  []byte
@@ -36,42 +34,38 @@ func TestGetDraftSuggestionsForContent(t *testing.T) {
 	}{
 		{
 			name:                       "Successful fetch",
-			UUID:                       "36320eb6-5617-4d12-9750-1907690e74db",
 			expectedStatus:             http.StatusOK,
-			payload:                    []byte(`test`),
-			retMockContentAPIResponse:  []byte(`test`),
-			retMockSuggestionsResponse: []byte(`test`),
-			expectedContentResult:      []byte(`test`),
-		},
-		{
-			name:           "Invalid uuid",
-			UUID:           "invalid uuid",
-			expectedStatus: http.StatusBadRequest,
-			expectedContentResult: []byte(`{"message":"Invalid UUID"}
-`),
+			payload:                    []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			retMockContentAPIResponse:  []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			retMockSuggestionsResponse: []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			expectedContentResult:      []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
 		},
 		{
 			name:           "Empty payload",
-			UUID:           "36320eb6-5617-4d12-9750-1907690e74db",
 			expectedStatus: http.StatusBadRequest,
 			expectedContentResult: []byte(`{"message":"content body is missing from the request"}
 `),
 		},
 		{
+			name:           "Invalid uuid",
+			expectedStatus: http.StatusBadRequest,
+			payload:        []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74dzzz"}`),
+			expectedContentResult: []byte(`{"message":"Invalid payload UUID"}
+`),
+		},
+		{
 			name:                   "FetchValidatedContent error case",
-			UUID:                   "36320eb6-5617-4d12-9750-1907690e74db",
 			expectedStatus:         http.StatusBadRequest,
-			payload:                []byte(`test`),
+			payload:                []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
 			retMockContentAPIError: errors.New("simulated error"),
 			expectedContentResult: []byte(`{"message":"failed while validating content: simulated error"}
 `),
 		},
 		{
 			name:                      "FetchSuggestions error case",
-			UUID:                      "36320eb6-5617-4d12-9750-1907690e74db",
 			expectedStatus:            http.StatusServiceUnavailable,
-			payload:                   []byte(`test`),
-			retMockContentAPIResponse: []byte(`test`),
+			payload:                   []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			retMockContentAPIResponse: []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
 			retMockSuggestionsErr:     errors.New("simulated error"),
 			expectedContentResult: []byte(`{"message":"Suggestions umbrella api access has failed"}
 `),
@@ -87,17 +81,17 @@ func TestGetDraftSuggestionsForContent(t *testing.T) {
 			rh := requestHandler{retMockContentAPI, retMockSuggestions, log}
 
 			r := mux.NewRouter()
-			r.HandleFunc("/drafts/content/{uuid}/suggestions", rh.getDraftSuggestionsForContent)
+			r.HandleFunc("/drafts/content/suggestions", rh.getDraftSuggestionsForContent)
 			ts := httptest.NewServer(r)
 
 			defer ts.Close()
-			req, err := http.NewRequest(http.MethodPost, ts.URL+strings.Replace("/drafts/content/{uuid}/suggestions", "{uuid}", test.UUID, 1), bytes.NewReader(test.payload))
+			req, err := http.NewRequest(http.MethodPost, ts.URL+"/drafts/content/suggestions", bytes.NewReader(test.payload))
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			retMockContentAPI.On("FetchValidatedContent", mock.Anything, bytes.NewReader(test.payload), test.UUID, "", log).Return(test.retMockContentAPIResponse, test.retMockContentAPIError).Once()
-			defer retMockContentAPI.On("FetchValidatedContent", mock.Anything, bytes.NewReader(test.payload), test.UUID, "", log).Unset()
+			retMockContentAPI.On("FetchValidatedContent", mock.Anything, bytes.NewReader(test.payload), mock.Anything, "", log).Return(test.retMockContentAPIResponse, test.retMockContentAPIError).Once()
+			defer retMockContentAPI.On("FetchValidatedContent", mock.Anything, bytes.NewReader(test.payload), mock.Anything, "", log).Unset()
 			retMockSuggestions.On("FetchSuggestions", mock.Anything, test.payload).Return(test.retMockSuggestionsResponse, test.retMockSuggestionsErr).Once()
 			defer retMockSuggestions.On("FetchSuggestions", mock.Anything, test.payload).Unset()
 
