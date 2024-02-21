@@ -3,12 +3,15 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	logger "github.com/Financial-Times/go-logger/v2"
+	transactionidutils "github.com/Financial-Times/transactionid-utils-go"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -165,6 +168,35 @@ func TestRequestHandlerContentInvalidUUID(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+const (
+	validEndpoint   = "http://some.valid.url/with/sub/resources:8080"
+	invalidEndpoint = "/missing.com/scheme/or/uri/type"
+	invalidUUID     = "random:invalid-string"
+)
+
+func TestValidateUUIDSuccess(t *testing.T) {
+	v4 := uuid.New()
+	assert.NoError(t, ValidateUUID(v4.String()))
+}
+
+func TestValidateUUIDFailure(t *testing.T) {
+	isValid := ValidateUUID(invalidUUID)
+
+	if isValid == nil {
+		assert.Fail(t, fmt.Sprintf("UUID validation should've failed for: %v", invalidUUID))
+	}
+}
+
+func TestNewContextFromRequest(t *testing.T) {
+	request, _ := http.NewRequest(http.MethodGet, validEndpoint, nil)
+	contextFromRequest := NewContextFromRequest(request)
+
+	trxID, ok := contextFromRequest.Value(transactionidutils.TransactionIDKey).(string)
+
+	assert.True(t, ok)
+	assert.NotEmpty(t, trxID)
 }
 
 func handleTestRequest(urlpath string) (resp *http.Response, err error) {

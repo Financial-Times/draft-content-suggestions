@@ -1,20 +1,20 @@
 content-types:
   "application/vnd.ft-upp-live-blog-post+json":
-    validator: "spark"
+    validator: "generic"
     end-point: "http://localhost:9000"
   "application/vnd.ft-upp-live-blog-package+json":
-    validator: "spark"
+    validator: "generic"
     end-point: "http://localhost:9000"    
   "application/vnd.ft-upp-article+json":
-    validator: "spark"
+    validator: "generic"
     end-point: "http://localhost:9000"
   "application/vnd.ft-upp-content-placeholder+json":
-    validator: "spark"
+    validator: "generic"
     end-point: "http://localhost:9000"
 end-point-health-checks:
   "http://localhost:9000":
     id: "check-draft-upp-live-blog-post-validator"
-    business-impact: "Draft spark content placeholder cannot be provided for suggestions"
+    business-impact: "Draft content placeholder cannot be provided for suggestions"
     name: "Check upp-live-blog-post-validator service"
     panic-guide: "https://runbooks.in.ft.com/draft-content-api"
     severity: 1
@@ -22,7 +22,7 @@ end-point-health-checks:
     checker-name: "Draft content upp-live-blog-post-validator"
   "http://localhost:9000":
     id: "check-draft-upp-live-blog-package-validator"
-    business-impact: "Draft spark content placeholder cannot be provided for suggestions"
+    business-impact: "Draft content placeholder cannot be provided for suggestions"
     name: "Check upp-live-blog-package-validator service"
     panic-guide: "https://runbooks.in.ft.com/draft-content-api"
     severity: 1
@@ -30,7 +30,7 @@ end-point-health-checks:
     checker-name: "Draft content upp-live-blog-package-validator"
   "http://localhost:9000":
     id: "check-draft-upp-article-validator"
-    business-impact: "Draft spark content article cannot be provided for suggestions"
+    business-impact: "Draft content article cannot be provided for suggestions"
     name: "Check upp-article-validator service"
     panic-guide: "https://runbooks.in.ft.com/draft-content-api"
     severity: 1
@@ -38,7 +38,7 @@ end-point-health-checks:
     checker-name: "Draft content upp-article-validator"
   "http://localhost:9000":
     id: "check-draft-upp-content-placeholder-validator"
-    business-impact: "Draft spark content placeholder cannot be provided for suggestions"
+    business-impact: "Draft content placeholder cannot be provided for suggestions"
     name: "Check upp-placeholder-validator service"
     panic-guide: "https://runbooks.in.ft.com/draft-content-api"
     severity: 1

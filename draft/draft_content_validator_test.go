@@ -15,15 +15,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSparkValidator(t *testing.T) {
+func TestValidator(t *testing.T) {
 	contentUUID := uuid.New().String()
 	nativeBody := "{\"foo\":\"bar\"}"
 	expectedBody := "{\"foo\":\"baz\"}"
-	server := mockSparkValidatorHTTPServer(t, http.StatusOK, nativeBody, expectedBody)
+	server := mockValidatorHTTPServer(t, http.StatusOK, nativeBody, expectedBody)
 
 	testClient, err := fthttp.NewClient(fthttp.WithSysInfo("PAC", "awesome-service"))
 	assert.NoError(t, err)
-	m := NewSparkDraftContentValidatorService(server.URL, testClient)
+	m := NewDraftContentValidatorService(server.URL, testClient)
 
 	body, err := m.Validate(tidutils.TransactionAwareContext(context.Background(), testTID),
 		contentUUID,
@@ -39,14 +39,14 @@ func TestSparkValidator(t *testing.T) {
 	assert.Equal(t, expectedBody, string(actualContent), "mapped content")
 }
 
-func TestSparkValidatorError(t *testing.T) {
+func TestValidatorError(t *testing.T) {
 	contentUUID := uuid.New().String()
 	nativeBody := "{\"foo\":\"bar2\"}"
-	server := mockSparkValidatorHTTPServer(t, http.StatusServiceUnavailable, nativeBody, "")
+	server := mockValidatorHTTPServer(t, http.StatusServiceUnavailable, nativeBody, "")
 
 	testClient, err := fthttp.NewClient(fthttp.WithSysInfo("PAC", "awesome-service"))
 	assert.NoError(t, err)
-	m := NewSparkDraftContentValidatorService(server.URL, testClient)
+	m := NewDraftContentValidatorService(server.URL, testClient)
 
 	body, err := m.Validate(tidutils.TransactionAwareContext(context.Background(), testTID),
 		contentUUID,
@@ -59,14 +59,14 @@ func TestSparkValidatorError(t *testing.T) {
 	assert.Nil(t, body)
 }
 
-func TestSparkValidatorClientError(t *testing.T) {
+func TestValidatorClientError(t *testing.T) {
 	contentUUID := uuid.New().String()
 	nativeBody := "{\"foo\":\"bar\"}"
-	server := mockSparkValidatorHTTPServer(t, http.StatusBadRequest, nativeBody, "")
+	server := mockValidatorHTTPServer(t, http.StatusBadRequest, nativeBody, "")
 
 	testClient, err := fthttp.NewClient(fthttp.WithSysInfo("PAC", "awesome-service"))
 	assert.NoError(t, err)
-	m := NewSparkDraftContentValidatorService(server.URL, testClient)
+	m := NewDraftContentValidatorService(server.URL, testClient)
 
 	body, err := m.Validate(tidutils.TransactionAwareContext(context.Background(), testTID),
 		contentUUID,
@@ -81,14 +81,14 @@ func TestSparkValidatorClientError(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, err.(ValidatorError).StatusCode())
 }
 
-func TestSparkValidatorBadContent(t *testing.T) {
+func TestValidatorBadContent(t *testing.T) {
 	contentUUID := uuid.New().String()
 	nativeBody := "{\"foo\":\"bar\"}"
-	server := mockSparkValidatorHTTPServer(t, http.StatusUnprocessableEntity, nativeBody, "")
+	server := mockValidatorHTTPServer(t, http.StatusUnprocessableEntity, nativeBody, "")
 
 	testClient, err := fthttp.NewClient(fthttp.WithSysInfo("PAC", "awesome-service"))
 	assert.NoError(t, err)
-	m := NewSparkDraftContentValidatorService(server.URL, testClient)
+	m := NewDraftContentValidatorService(server.URL, testClient)
 
 	body, err := m.Validate(tidutils.TransactionAwareContext(context.Background(), testTID),
 		contentUUID,
@@ -101,7 +101,36 @@ func TestSparkValidatorBadContent(t *testing.T) {
 	assert.Nil(t, body)
 }
 
-func mockSparkValidatorHTTPServer(t *testing.T, status int, expectedBody string, response string) *httptest.Server {
+func TestNewHTTPRequest(t *testing.T) {
+	url := "http://www.example.com/"
+	ctx := tidutils.TransactionAwareContext(context.Background(), testTID)
+	req, err := newHTTPRequest(ctx, http.MethodGet, url, nil)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.MethodGet, req.Method, "HTTP method")
+	assert.Equal(t, url, req.URL.String(), "request URL")
+	assert.Equal(t, testTID, req.Header.Get(tidutils.TransactionIDHeader), tidutils.TransactionIDHeader)
+}
+
+func TestNewHTTPRequestNoTID(t *testing.T) {
+	url := "http://www.example.com/"
+	req, err := newHTTPRequest(context.Background(), http.MethodGet, url, nil)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.MethodGet, req.Method, "HTTP method")
+	assert.Equal(t, url, req.URL.String(), "request URL")
+	assert.Equal(t, "", req.Header.Get(tidutils.TransactionIDHeader), tidutils.TransactionIDHeader)
+}
+
+func TestNewHTTPRequestInvalidUrl(t *testing.T) {
+	url := ":"
+	ctx := tidutils.TransactionAwareContext(context.Background(), testTID)
+	_, err := newHTTPRequest(ctx, http.MethodGet, url, nil)
+
+	assert.Error(t, err)
+}
+
+func mockValidatorHTTPServer(t *testing.T, status int, expectedBody string, response string) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "POST", r.Method, "HTTP method")
 		assert.Equal(t, "/validate", r.URL.Path)

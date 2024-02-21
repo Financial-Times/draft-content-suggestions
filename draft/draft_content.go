@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Financial-Times/draft-content-suggestions/commons"
 	"github.com/Financial-Times/draft-content-suggestions/config"
+	"github.com/Financial-Times/draft-content-suggestions/endpointessentials"
 	"github.com/Financial-Times/go-logger/v2"
 	tidutils "github.com/Financial-Times/transactionid-utils-go"
 )
@@ -46,7 +46,7 @@ func NewContentAPI(endpoint string, healthEndpoint string, httpClient *http.Clie
 type ContentAPI interface {
 	FetchDraftContent(ctx context.Context, uuid string) (content []byte, err error)
 	FetchValidatedContent(ctx context.Context, body io.Reader, contentUUID string, contentType string, log *logger.UPPLogger) ([]byte, error)
-	commons.Endpoint
+	endpointessentials.Endpoint
 }
 
 type draftContentAPI struct {
@@ -134,8 +134,8 @@ func BuildContentTypeMapping(validatorConfig *config.Config, httpClient *http.Cl
 		var service ContentValidator
 
 		switch cfg.Validator {
-		case "spark":
-			service = NewSparkDraftContentValidatorService(cfg.Endpoint, httpClient)
+		case "generic":
+			service = NewDraftContentValidatorService(cfg.Endpoint, httpClient)
 		default:
 			log.WithField("Validator", cfg.Validator).Fatal("Unknown validator")
 		}
@@ -175,5 +175,5 @@ func (d *draftContentAPI) IsGTG(ctx context.Context) (string, error) {
 }
 
 func (d *draftContentAPI) IsValid() error {
-	return commons.ValidateEndpoint(d.endpoint)
+	return endpointessentials.ValidateEndpoint(d.endpoint)
 }

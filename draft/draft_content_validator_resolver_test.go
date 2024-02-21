@@ -8,7 +8,7 @@ import (
 )
 
 func TestDraftContentValidatorResolver_ValidatorForContentType(t *testing.T) {
-	ucv := NewSparkDraftContentValidatorService("upp-article-endpoint", http.DefaultClient)
+	ucv := NewDraftContentValidatorService("upp-article-endpoint", http.DefaultClient)
 	resolver := NewContentValidatorResolver(cctOnlyResolverConfig(ucv))
 
 	uppContentValidator, err := resolver.ValidatorForContentType("application/vnd.ft-upp-article+json; version=1.0; charset=utf-8")
@@ -17,7 +17,7 @@ func TestDraftContentValidatorResolver_ValidatorForContentType(t *testing.T) {
 	assert.Equal(t, ucv, uppContentValidator, "Should return the same instance impl of DraftContentValidator")
 }
 
-func TestDraftContentValidatorResolver_MissingSparkValidation(t *testing.T) {
+func TestDraftContentValidatorResolver_MissingValidation(t *testing.T) {
 	resolver := NewContentValidatorResolver(map[string]ContentValidator{})
 
 	validator, err := resolver.ValidatorForContentType("application/vnd.ft-upp-article+json; version=1.0; charset=utf-8")
