@@ -1,0 +1,46 @@
+content-types:
+  "application/vnd.ft-upp-live-blog-post+json":
+    validator: "generic"
+    end-point: "http://upp-live-blog-post-validator:8080"
+  "application/vnd.ft-upp-live-blog-package+json":
+    validator: "generic"
+    end-point: "http://upp-live-blog-package-validator:8080"   
+  "application/vnd.ft-upp-article+json":
+    validator: "generic"
+    end-point: "http://upp-article-validator:8080"
+  "application/vnd.ft-upp-content-placeholder+json":
+    validator: "generic"
+    end-point: "http://upp-content-placeholder-validator:8080"
+end-point-health-checks:
+  "http://upp-live-blog-post-validator:8080":
+    id: "check-draft-upp-live-blog-post-validator"
+    business-impact: "Draft content placeholder cannot be provided for suggestions"
+    name: "Check upp-live-blog-post-validator service"
+    panic-guide: "https://runbooks.in.ft.com/draft-content-api"
+    severity: 1
+    technical-summary: "Live blog post content validator is not available at %v"
+    checker-name: "Draft content upp-live-blog-post-validator"
+  "http://upp-live-blog-package-validator:8080":
+    id: "check-draft-upp-live-blog-package-validator"
+    business-impact: "Draft content placeholder cannot be provided for suggestions"
+    name: "Check upp-live-blog-package-validator service"
+    panic-guide: "https://runbooks.in.ft.com/draft-content-api"
+    severity: 1
+    technical-summary: "Live blog package content validator is not available at %v"
+    checker-name: "Draft content upp-live-blog-package-validator"
+  "http://upp-article-validator:8080":
+    id: "check-draft-upp-article-validator"
+    business-impact: "Draft content cannot be provided for suggestions"
+    name: "Check upp-article-validator service"
+    panic-guide: "https://runbooks.in.ft.com/draft-content-api"
+    severity: 1
+    technical-summary: "Draft upp article validator is not available at %v"
+    checker-name: "Draft content upp-article-validator"
+  "http://upp-content-placeholder-validator:8080":
+    id: "check-draft-upp-content-placeholder-validator"
+    business-impact: "Draft content placeholder cannot be provided for suggestions"
+    name: "Check upp-placeholder-validator service"
+    panic-guide: "https://runbooks.in.ft.com/draft-content-api"
+    severity: 1
+    technical-summary: "Draft upp content validator is not available at %v"
+    checker-name: "Draft content upp-content-placeholder-validator"

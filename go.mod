@@ -16,17 +16,20 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20180125231941-8732c616f529
 	github.com/sirupsen/logrus v1.0.5
-	github.com/stretchr/testify v1.5.1
-	golang.org/x/crypto v0.0.0-20180127211104-1875d0a70c90 // indirect
+	github.com/stretchr/testify v1.8.4
+	golang.org/x/crypto v0.19.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
+
+require gopkg.in/yaml.v2 v2.3.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
-	golang.org/x/net v0.0.0-20180906233101-161cd47e91fd // indirect
-	golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e // indirect
-	gopkg.in/yaml.v2 v2.3.0 // indirect
+	github.com/stretchr/objx v0.5.1 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/term v0.17.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

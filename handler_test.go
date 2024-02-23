@@ -1,18 +1,136 @@
 package main
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	logger "github.com/Financial-Times/go-logger/v2"
+	transactionidutils "github.com/Financial-Times/transactionid-utils-go"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
+	"github.com/Financial-Times/draft-content-suggestions/config"
 	"github.com/Financial-Times/draft-content-suggestions/draft"
 	"github.com/Financial-Times/draft-content-suggestions/mocks"
 	"github.com/Financial-Times/draft-content-suggestions/suggestions"
 )
+
+// nolint:gocognit // We have agreed as a team to use this nolint when writing table tests
+func TestGetDraftSuggestionsForContent(t *testing.T) {
+	tests := []struct {
+		name                       string
+		retMockSuggestionsResponse []byte
+		retMockSuggestionsErr      error
+		retMockContentAPIResponse  []byte
+		retMockContentAPIError     error
+		expectedStatus             int
+		expectedError              error
+		payload                    []byte
+		expectedContentResult      []byte
+	}{
+		{
+			name:                       "Successful fetch",
+			expectedStatus:             http.StatusOK,
+			payload:                    []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			retMockContentAPIResponse:  []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			retMockSuggestionsResponse: []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			expectedContentResult:      []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+		},
+		{
+			name:           "Empty payload",
+			expectedStatus: http.StatusBadRequest,
+			expectedContentResult: []byte(`{"message":"content body is missing from the request"}
+`),
+		},
+		{
+			name:           "Invalid uuid",
+			expectedStatus: http.StatusBadRequest,
+			payload:        []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74dzzz"}`),
+			expectedContentResult: []byte(`{"message":"Invalid payload UUID"}
+`),
+		},
+		{
+			name:                   "FetchValidatedContent error case",
+			expectedStatus:         http.StatusBadRequest,
+			payload:                []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			retMockContentAPIError: errors.New("simulated error"),
+			expectedContentResult: []byte(`{"message":"failed while validating content: simulated error"}
+`),
+		},
+		{
+			name:                      "FetchSuggestions error case",
+			expectedStatus:            http.StatusServiceUnavailable,
+			payload:                   []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			retMockContentAPIResponse: []byte(`{"uuid": "36320eb6-5617-4d12-9750-1907690e74db"}`),
+			retMockSuggestionsErr:     errors.New("simulated error"),
+			expectedContentResult: []byte(`{"message":"Suggestions umbrella api access has failed"}
+`),
+		},
+	}
+
+	retMockSuggestions := &suggestions.MockSuggestionsUmbrellaAPI{}
+	retMockContentAPI := &draft.MockDraftContentAPI{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			log := logger.NewUnstructuredLogger()
+
+			rh := requestHandler{retMockContentAPI, retMockSuggestions, log}
+
+			r := mux.NewRouter()
+			r.HandleFunc("/drafts/content/suggestions", rh.getDraftSuggestionsForContent)
+			ts := httptest.NewServer(r)
+
+			defer ts.Close()
+			req, err := http.NewRequest(http.MethodPost, ts.URL+"/drafts/content/suggestions", bytes.NewReader(test.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			retMockContentAPI.On("FetchValidatedContent", mock.Anything, bytes.NewReader(test.payload), mock.Anything, "", log).Return(test.retMockContentAPIResponse, test.retMockContentAPIError).Once()
+			defer retMockContentAPI.On("FetchValidatedContent", mock.Anything, bytes.NewReader(test.payload), mock.Anything, "", log).Unset()
+			retMockSuggestions.On("FetchSuggestions", mock.Anything, test.payload).Return(test.retMockSuggestionsResponse, test.retMockSuggestionsErr).Once()
+			defer retMockSuggestions.On("FetchSuggestions", mock.Anything, test.payload).Unset()
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				if test.expectedError == nil {
+					t.Fatalf("unexpected error occurred: %v", err)
+				}
+
+				if err.Error() != test.expectedError.Error() {
+					t.Fatalf("expected error: %v, got: %v", test.expectedError, err)
+				}
+
+				return
+			}
+			defer resp.Body.Close()
+
+			if test.expectedError != nil {
+				t.Fatalf("expected error did not occur: %v", test.expectedError)
+			}
+
+			if resp.StatusCode != test.expectedStatus {
+				t.Fatalf("expected status code: %v, but got: %v", test.expectedStatus, resp.StatusCode)
+			}
+
+			respBody, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if string(respBody) != string(test.expectedContentResult) {
+				t.Errorf("expected result: %s, but got: %s", test.expectedContentResult, string(respBody))
+			}
+		})
+	}
+}
 
 func TestRequestHandlerSuccess(t *testing.T) {
 	resp, err := handleTestRequest("/drafts/content/" + mocks.ValidMockContentUUID + "/suggestions")
@@ -52,6 +170,35 @@ func TestRequestHandlerContentInvalidUUID(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
+const (
+	validEndpoint   = "http://some.valid.url/with/sub/resources:8080"
+	invalidEndpoint = "/missing.com/scheme/or/uri/type"
+	invalidUUID     = "random:invalid-string"
+)
+
+func TestValidateUUIDSuccess(t *testing.T) {
+	v4 := uuid.New()
+	assert.NoError(t, ValidateUUID(v4.String()))
+}
+
+func TestValidateUUIDFailure(t *testing.T) {
+	isValid := ValidateUUID(invalidUUID)
+
+	if isValid == nil {
+		assert.Fail(t, fmt.Sprintf("UUID validation should've failed for: %v", invalidUUID))
+	}
+}
+
+func TestNewContextFromRequest(t *testing.T) {
+	request, _ := http.NewRequest(http.MethodGet, validEndpoint, nil)
+	contextFromRequest := NewContextFromRequest(request)
+
+	trxID, ok := contextFromRequest.Value(transactionidutils.TransactionIDKey).(string)
+
+	assert.True(t, ok)
+	assert.NotEmpty(t, trxID)
+}
+
 func handleTestRequest(urlpath string) (resp *http.Response, err error) {
 	draftContentTestServer := mocks.NewDraftContentTestServer(true)
 	umbrellaTestServer := mocks.NewUmbrellaTestServer(true)
@@ -60,7 +207,14 @@ func handleTestRequest(urlpath string) (resp *http.Response, err error) {
 	defer umbrellaTestServer.Close()
 
 	log := logger.NewUPPLogger("Test", "PANIC")
-	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.URL+"/drafts/content", draftContentTestServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient)
+	validatorConfig, err := config.ReadConfig("config.local.yml")
+	if err != nil {
+		log.WithError(err).Fatal("unable to read r/w YAML configuration")
+	}
+
+	contentTypeMapping := draft.BuildContentTypeMapping(validatorConfig, http.DefaultClient, log)
+	resolver := draft.NewContentValidatorResolver(contentTypeMapping)
+	contentAPI, _ := draft.NewContentAPI(draftContentTestServer.URL+"/drafts/content", draftContentTestServer.URL+"/__gtg", http.DefaultClient, http.DefaultClient, resolver)
 	umbrellaAPI, _ := suggestions.NewUmbrellaAPI(umbrellaTestServer.URL, umbrellaTestServer.URL+"/__gtg", suggestions.TestUsername, suggestions.TestPassword, http.DefaultClient, http.DefaultClient)
 
 	rh := requestHandler{contentAPI, umbrellaAPI, log}
@@ -72,5 +226,4 @@ func handleTestRequest(urlpath string) (resp *http.Response, err error) {
 	defer ts.Close()
 
 	return http.Get(ts.URL + urlpath)
-
 }

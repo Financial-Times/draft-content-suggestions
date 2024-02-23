@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Financial-Times/draft-content-suggestions/commons"
+	"github.com/Financial-Times/draft-content-suggestions/endpointessentials"
 )
 
 const (
@@ -35,7 +35,7 @@ type UmbrellaAPI interface {
 	FetchSuggestions(ctx context.Context, content []byte) (suggestion []byte, err error)
 
 	// Embedded Endpoint interface, check its godoc
-	commons.Endpoint
+	endpointessentials.Endpoint
 }
 
 type umbrellaAPI struct {
@@ -100,5 +100,5 @@ func (u *umbrellaAPI) IsGTG(ctx context.Context) (string, error) {
 }
 
 func (u *umbrellaAPI) IsValid() error {
-	return commons.ValidateEndpoint(u.endpoint)
+	return endpointessentials.ValidateEndpoint(u.endpoint)
 }

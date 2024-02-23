@@ -20,5 +20,6 @@ WORKDIR /
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /artifacts/* /
 COPY ./_ft/api.yml /
+COPY ./config.yml /
 
 CMD [ "/draft-content-suggestions" ]

@@ -66,6 +66,69 @@ fixtures:
       headers:
         content-type: application/json
       status: 200
+  /validate:
+    post:
+      body:
+        suggestions:
+          - predicate: http://www.ft.com/ontology/hasContributor
+            id: http://www.ft.com/thing/4156ef9f-95ba-3ad2-9aaf-940bc3907469
+            apiUrl: http://api.ft.com/people/4156ef9f-95ba-3ad2-9aaf-940bc3907469
+            type: http://www.ft.com/ontology/person/Person
+            prefLabel: Ændrew Rininsland
+            isFTAuthor: true
+          - predicate: http://www.ft.com/ontology/annotation/about
+            id: http://www.ft.com/thing/0d93ba5a-15bc-361b-816e-39f76237075f
+            apiUrl: http://api.ft.com/things/0d93ba5a-15bc-361b-816e-39f76237075f
+            type: http://www.ft.com/ontology/Topic
+            prefLabel: Oil
+          - predicate: http://www.ft.com/ontology/annotation/about
+            id: http://www.ft.com/thing/a0925ea7-a9a5-3b62-a734-e0dda753cc8e
+            apiUrl: http://api.ft.com/people/a0925ea7-a9a5-3b62-a734-e0dda753cc8e
+            type: http://www.ft.com/ontology/person/Person
+            prefLabel: Bono
+            isFTAuthor: false
+          - predicate: http://www.ft.com/ontology/annotation/about
+            id: http://www.ft.com/thing/ab03f9df-c869-3afe-8fb2-9dda30349179
+            apiUrl: http://api.ft.com/people/ab03f9df-c869-3afe-8fb2-9dda30349179
+            type: http://www.ft.com/ontology/person/Person
+            prefLabel: Donald Trump Jr.
+            isFTAuthor: false
+          - predicate: http://www.ft.com/ontology/annotation/about
+            id: http://www.ft.com/thing/e8d4250d-45ca-3c71-ba19-5c804a3cb1a1
+            apiUrl: http://api.ft.com/organisations/e8d4250d-45ca-3c71-ba19-5c804a3cb1a1
+            type: http://www.ft.com/ontology/organisation/Organisation
+            prefLabel: US Oil & Gas, Inc.
+          - predicate: http://www.ft.com/ontology/annotation/mentions
+            id: http://www.ft.com/thing/04013826-1557-3be2-b29b-f3bb879c5ef1
+            apiUrl: http://api.ft.com/people/04013826-1557-3be2-b29b-f3bb879c5ef1
+            type: http://www.ft.com/ontology/person/Person
+            prefLabel: Flea
+            isFTAuthor: false
+          - predicate: http://www.ft.com/ontology/annotation/mentions
+            id: http://www.ft.com/thing/a30e3c62-0df1-382a-8d14-a24b4af84787
+            apiUrl: http://api.ft.com/organisations/a30e3c62-0df1-382a-8d14-a24b4af84787
+            type: http://www.ft.com/ontology/organisation/Organisation
+            prefLabel: Alfa Shrimp
+          - predicate: http://www.ft.com/ontology/classification/isClassifiedBy
+            id: http://www.ft.com/thing/e363dfb8-f6d9-4f2c-beba-5162b334272b
+            apiUrl: http://api.ft.com/brands/e363dfb8-f6d9-4f2c-beba-5162b334272b
+            type: http://www.ft.com/ontology/product/Brand
+            prefLabel: Lex Live
+          - apiUrl: http://api.ft.com/people/6f14ea94-690f-3ed4-98c7-b926683c735a
+            id: http://www.ft.com/thing/6f14ea94-690f-3ed4-98c7-b926683c735a
+            isFTAuthor: false
+            predicate: http://www.ft.com/ontology/annotation/about
+            prefLabel: Donald Kaberuka
+            type: http://www.ft.com/ontology/person/Person
+          - apiUrl: http://api.ft.com/people/9a5e3b4a-55da-498c-816f-9c534e1392bd
+            id: http://www.ft.com/thing/9a5e3b4a-55da-498c-816f-9c534e1392bd
+            isFTAuthor: true
+            predicate: http://www.ft.com/ontology/annotation/mentions
+            prefLabel: Lawrence Summers
+            type: http://www.ft.com/ontology/person/Person
+      headers:
+        content-type: application/json
+      status: 200
   /drafts/content/97c97db4-4a93-43a4-87c9-b04d7f5284c1:
     get:
       body:

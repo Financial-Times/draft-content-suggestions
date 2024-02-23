@@ -3,9 +3,11 @@ package health
 import (
 	"context"
 	"errors"
+	"io"
 	"testing"
 	"time"
 
+	"github.com/Financial-Times/draft-content-suggestions/config"
 	logger "github.com/Financial-Times/go-logger/v2"
 
 	logrus "github.com/sirupsen/logrus"
@@ -25,8 +27,10 @@ func TestHealthService_HealthSuccess(t *testing.T) {
 	contentAPI.On("IsGTG", context.Background()).Return("good to go here!", nil)
 	contentAPI.On("Endpoint").Return("test")
 
-	healthService := NewService("", "", "", contentAPI, umbrellaAPI, log)
-
+	healthService, err := NewService("", "", "", contentAPI, umbrellaAPI, &config.Config{}, []ExternalService{}, log)
+	if err != nil {
+		t.Fatal(err)
+	}
 	gtg := healthService.GTG()
 
 	assert.True(t, gtg.GoodToGo)
@@ -44,8 +48,10 @@ func TestHealthService_HealthPartialFailure(t *testing.T) {
 	contentAPI.On("IsGTG", context.Background()).Return("good to go here!", nil)
 	contentAPI.On("Endpoint").Return("test")
 
-	healthService := NewService("", "", "", contentAPI, umbrellaAPI, log)
-
+	healthService, err := NewService("", "", "", contentAPI, umbrellaAPI, &config.Config{}, []ExternalService{}, log)
+	if err != nil {
+		t.Fatal(err)
+	}
 	gtg := healthService.GTG()
 
 	assert.False(t, gtg.GoodToGo)
@@ -65,8 +71,10 @@ func TestHealthService_HealthFullFailure(t *testing.T) {
 	contentAPI.On("IsGTG", context.Background()).Return("", errors.New("dying of boredom"))
 	contentAPI.On("Endpoint").Return("test")
 
-	healthService := NewService("", "", "", contentAPI, umbrellaAPI, log)
-
+	healthService, err := NewService("", "", "", contentAPI, umbrellaAPI, &config.Config{}, []ExternalService{}, log)
+	if err != nil {
+		t.Fatal(err)
+	}
 	gtg := healthService.GTG()
 
 	assert.False(t, gtg.GoodToGo)
@@ -192,6 +200,29 @@ func (_m *ContentAPI) FetchDraftContent(ctx context.Context, uuid string) ([]byt
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, uuid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// FetchDraftContent provides a mock function with given fields: ctx, uuid
+func (_m *ContentAPI) FetchValidatedContent(ctx context.Context, _ io.Reader, contentUUID string, _ string, _ *logger.UPPLogger) ([]byte, error) {
+	ret := _m.Called(ctx, contentUUID)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(context.Context, string) []byte); ok {
+		r0 = rf(ctx, contentUUID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, contentUUID)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -12,6 +12,7 @@ jobs:
           SUGGESTIONS_GTG_ENDPOINT: http://localhost:9000/content/suggest/__gtg
           DRAFT_CONTENT_ENDPOINT: http://localhost:9000/drafts/content
           DRAFT_CONTENT_GTG_ENDPOINT: http://localhost:9000/__gtg
+          VALIDATOR_YML: "./config.dredd.yml"
           SUGGESTIONS_API_KEY: 12345
       - image: peteclarkft/ersatz:stable
     steps:
